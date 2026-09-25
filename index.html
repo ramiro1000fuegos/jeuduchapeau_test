@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Jeu du chapeau — La boîte aux cartes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#15121B;--bg-raised:#1E1A26;--spot:#E8A33D;--spot-dim:#7A5A26;
+  --text:#F4EEE3;--text-muted:#948C9E;--teal:#4E9E97;--danger:#C1595A;--line:#2C2733;
+  --font-display:"Fraunces",Georgia,serif;--font-ui:"Inter",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);overflow:hidden;height:100dvh;display:flex;flex-direction:column;}
+button{font-family:inherit;cursor:pointer;}
+h1,h2{font-family:var(--font-display);margin:0 0 8px;}
+.scr{flex:1;display:none;flex-direction:column;min-height:0;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));}
+.scr.on{display:flex;}
+.center{align-items:center;justify-content:center;text-align:center;}
+.sub{color:var(--text-muted);font-size:16px;line-height:1.5;margin:0 0 20px;}
+.btn{border:none;border-radius:12px;padding:16px 22px;font-size:16px;font-weight:600;background:var(--spot);color:#1B140A;margin:6px 0;}
+.btn:active{transform:scale(.98);}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
+.btn.danger{background:var(--danger);color:#fff;}
+.btn:disabled{opacity:.4;}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px;}
+.chip{border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:12px 18px;font-size:16px;font-weight:600;}
+.chip[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#0D2422;}
+.scroll{flex:1;overflow-y:auto;min-height:0;}
+.card{background:var(--bg-raised);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px;font-family:var(--font-display);font-size:17px;text-align:left;}
+.card[aria-pressed="true"]{border-color:var(--spot);background:rgba(232,163,61,.14);}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;flex-shrink:0;}
+.eyebrow{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);}
+.iconbtn{background:var(--bg-raised);border:1px solid var(--line);color:var(--text-muted);width:36px;height:36px;border-radius:10px;}
+#g-team{font-size:13px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;}
+#g-time{font-family:var(--font-display);font-size:44px;font-weight:700;margin:6px 0;}
+#g-theme{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,7vw,36px);text-align:center;padding:20px 10px;}
+.stagemid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.actions{flex-shrink:0;display:flex;flex-direction:column;gap:10px;padding-bottom:10px;}
+.popup{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10;padding:20px;}
+.popup.on{display:flex;}
+.popup-box{background:var(--bg-raised);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:340px;text-align:center;}
+.score-row{display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg-raised);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:16px;}
+</style>
+</head>
+<body>
+
+<div id="s-home" class="scr center">
+  <h1>Jeu du chapeau</h1>
+  <p class="sub">Devinez un maximum de thèmes en 3 manches.</p>
+  <button class="btn" id="b-home-new">Nouvelle partie</button>
+  <button class="btn ghost" id="b-home-resume" style="display:none">Reprendre la partie</button>
+  <button class="btn ghost" id="b-home-rules">Règles du jeu</button>
+</div>
+
+<div id="s-config" class="scr center">
+  <h2>Nombre de participants</h2>
+  <div class="row" id="config-nb"></div>
+</div>
+
+<div id="s-teams" class="scr center">
+  <h2>Formation des équipes</h2>
+  <p class="sub" id="teams-desc"></p>
+  <button class="btn" id="b-teams-next">Continuer</button>
+</div>
+
+<div id="s-mode" class="scr center">
+  <h2>Mode de sélection des thèmes</h2>
+  <p class="sub">Choisissez comment les 40 thèmes de la partie seront constitués.</p>
+  <div class="row" id="mode-opts" style="flex-direction:column"></div>
+</div>
+
+<div id="s-blank" class="scr center">
+  <p class="sub" id="blank-label">Passez le téléphone au joueur suivant.</p>
+  <button class="btn" id="b-blank-next">Joueur suivant</button>
+</div>
+
+<div id="s-pick" class="scr">
+  <div class="topbar"><span class="eyebrow" id="pick-who"></span></div>
+  <p class="sub" id="pick-sub">Sélectionnez 2 thèmes à écarter de la partie.</p>
+  <div class="scroll" id="pick-list"></div>
+  <button class="btn" id="b-pick-done" disabled>Retirer les thèmes sélectionnés</button>
+</div>
+
+<div id="s-premanche" class="scr center">
+  <h2 id="pm-title"></h2>
+  <p class="sub" id="pm-desc"></p>
+  <div class="row" id="pm-duration"></div>
+  <button class="btn" id="b-pm-start">Commencer la manche</button>
+  <button class="btn ghost" id="b-pm-rules">Règles du jeu</button>
+</div>
+
+<div id="s-game" class="scr">
+  <div class="topbar">
+    <span class="eyebrow" id="g-manche"></span>
+    <button class="iconbtn" id="b-game-quit">✕</button>
+  </div>
+  <div class="stagemid">
+    <div id="g-team" style="padding:8px 16px;border-radius:10px;font-weight:700;"></div>
+    <div id="g-time">--</div>
+    <div id="g-progress" class="sub" style="margin:0 0 4px"></div>
+    <div id="g-theme">Prêt ?</div>
+  </div>
+  <div class="actions" id="g-actions">
+    <button class="btn" id="b-g-next">Joueur suivant</button>
+  </div>
+</div>
+
+<div id="s-teamchoice" class="scr center">
+  <h2>Formation des équipes</h2>
+  <p class="sub">Deux configurations sont possibles, choisissez-en une.</p>
+  <div class="row" id="teamchoice-opts" style="flex-direction:column"></div>
+</div>
+
+<div id="s-endmanche" class="scr center">
+  <h2>Fin de manche</h2>
+  <div class="scroll" id="em-scores" style="width:100%;max-width:360px"></div>
+  <button class="btn" id="b-em-next" style="margin-top:16px">OK</button>
+  <button class="btn ghost" id="b-em-rules">Règles du jeu</button>
+</div>
+
+<div id="s-end" class="scr center">
+  <h2>Fin de partie</h2>
+  <div class="scroll" id="end-scores" style="width:100%;max-width:360px"></div>
+  <h2 style="margin-top:18px;font-size:18px" id="end-themes-title">Les thèmes</h2>
+  <div class="scroll" id="end-themes" style="width:100%;max-width:360px"></div>
+  <button class="btn" id="b-end-new" style="margin-top:16px">OK</button>
+</div>
+
+<div class="popup" id="p-error"><div class="popup-box">
+  <p>Confirmer la faute ? Le tour de l'équipe se termine.</p>
+  <button class="btn danger" id="b-err-yes">Confirmer</button>
+  <button class="btn ghost" id="b-err-no">Annuler</button>
+</div></div>
+
+<div class="popup" id="p-quit"><div class="popup-box">
+  <p>Quitter la partie ? Vous pourrez la reprendre plus tard.</p>
+  <button class="btn danger" id="b-quit-yes">Quitter</button>
+  <button class="btn ghost" id="b-quit-no">Annuler</button>
+</div></div>
+
+<script>
+(function(){
+"use strict";
+var RULES_URL = "https://example.com/regles-times-up"; // TODO: URL réelle des règles
+
+// 594 thèmes fournis par l'utilisateur (personnages, films, séries, marques, lieux, chansons...)
+var THEME_POOL = ["Michael Jackson", "Napoléon Bonaparte", "Albert Einstein", "Zinédine Zidane", "Cristiano Ronaldo", "Édith Piaf", "Charles Aznavour", "Lionel Messi", "Claude François", "Johnny Hallyday", "Dalida", "Elvis Presley", "Adolf Hitler", "Serge Gainsbourg", "Charles de Gaulle", "Jacques Brel", "Georges Brassens", "Jean-Jacques Goldman", "Louis de Funès", "Madonna", "Barack Obama", "Marilyn Monroe", "Nelson Mandela", "Leonardo DiCaprio", "Beyoncé", "Brad Pitt", "Tom Cruise", "Arnold Schwarzenegger", "Céline Dion", "Omar Sy", "Bob Marley", "Jackie Chan", "Bruce Lee", "Cléopâtre", "Will Smith", "Lady Gaga", "Rihanna", "Eminem", "Gandhi", "Donald Trump", "Astérix", "Kylian Mbappé", "Pelé", "Obélix", "Diego Maradona", "Tintin", "Michel Sardou", "Lucky Luke", "Mylène Farmer", "Gaston Lagaffe", "Sophie Marceau", "Titeuf", "Jean Reno", "Le Petit Nicolas", "Jean Dujardin", "Les Schtroumpfs", "Dany Boon", "Marsupilami", "François Mitterrand", "Spirou", "Louis XIV", "Le Chat", "Marie-Antoinette", "Les Dalton", "Jeanne d'Arc", "Mickey", "Pablo Picasso", "Donald", "Victor Hugo", "Picsou", "Jules César", "Winnie l'Ourson", "Peter Pan", "Alice", "Winston Churchill", "Elizabeth II", "Pinocchio", "Cendrillon", "Steve Jobs", "Blanche-Neige", "Bill Gates", "Barbie", "Elon Musk", "Vladimir Poutine", "Superman", "Batman", "Martin Luther King", "Spider-Man", "Marie Curie", "Hulk", "Louis Pasteur", "Wonder Woman", "Léonard de Vinci", "James Bond", "Mozart", "Indiana Jones", "Beethoven", "Rocky", "William Shakespeare", "Rambo", "Molière", "Dark Vador", "Alexandre Dumas", "Jules Verne", "Yoda", "Antoine de Saint-Exupéry", "Harry Potter", "Albert Camus", "Sherlock Holmes", "Dracula", "Salvador Dalí", "Claude Monet", "Frankenstein", "Gustave Eiffel", "Zorro", "Frida Kahlo", "Tarzan", "Coco Chanel", "King Kong", "David Beckham", "Mr Bean", "Michael Jordan", "Homer Simpson", "Bart Simpson", "Muhammad Ali", "Mike Tyson", "Scooby-Doo", "Michael Schumacher", "Mario", "Rafael Nadal", "Luigi", "Novak Djokovic", "Sonic", "Tiger Woods", "Pikachu", "Serena Williams", "Lewis Hamilton", "Lara Croft", "Alain Prost", "Link", "Donkey Kong", "Thierry Henry", "Karim Benzema", "Kirby", "Antoine Griezmann", "Teddy Riner", "Son Goku", "Thomas Pesquet", "Naruto", "Didier Deschamps", "Luffy", "Michel Platini", "Alain Delon", "Nicky Larson", "Catherine Deneuve", "Père Noël", "Gérard Depardieu", "Père Fouettard", "Marion Cotillard", "Petit Chaperon rouge", "Isabelle Adjani", "Robin des Bois", "Don Quichotte", "Cyrano de Bergerac", "Penélope Cruz", "Don Juan", "Antonio Banderas", "Carmen", "Javier Bardem", "Salma Hayek", "Perceval", "Monica Bellucci", "Karadoc", "Sophia Loren", "Roi Arthur", "Robert De Niro", "Merlin le Magicien", "Al Pacino", "Jean-Claude Convenant", "Hervé Dumont", "Morgan Freeman", "Denzel Washington", "La Grande Vadrouille", "Bienvenue chez les Ch'tis", "Tom Hanks", "Intouchables", "Robin Williams", "Astérix et Obélix : Mission Cléopâtre", "Sylvester Stallone", "Jim Carrey", "Les Visiteurs", "Jennifer Lopez", "Le Dîner de cons", "Angelina Jolie", "Les Bronzés", "Julia Roberts", "Le Père Noël est une ordure", "Meryl Streep", "Les Tontons flingueurs", "Scarlett Johansson", "Le Gendarme de Saint-Tropez", "Natalie Portman", "Emma Watson", "Le Fabuleux Destin d'Amélie Poulain", "Sean Connery", "La Cité de la peur", "Charlie Chaplin", "OSS 117", "Anthony Hopkins", "Les Choristes", "Daniel Craig", "Titanic", "Star Wars", "Hugh Grant", "Steven Spielberg", "George Lucas", "Jurassic Park", "James Cameron", "Le Roi Lion", "Quentin Tarantino", "Retour vers le futur", "Alfred Hitchcock", "Christopher Nolan", "Walt Disney", "Terminator", "Stephen King", "Matrix", "Agatha Christie", "Pirates des Caraïbes", "J. K. Rowling", "Ernest Hemingway", "Mission: Impossible", "Avengers", "Edgar Allan Poe", "Charles Darwin", "Nikola Tesla", "Forrest Gump", "Isaac Newton", "Thomas Edison", "Maman, j'ai raté l'avion", "E.T.", "Alexander Graham Bell", "Grease", "Stephen Hawking", "Dirty Dancing", "Sigmund Freud", "Le Parrain", "Karl Marx", "Friends", "Friedrich Nietzsche", "Game of Thrones", "Jésus", "Breaking Bad", "Bouddha", "Mahomet", "The Walking Dead", "La Casa de Papel", "Galilée", "Christophe Colomb", "Peaky Blinders", "Gengis Khan", "Stranger Things", "Abraham Lincoln", "The Office", "George Washington", "Squid Game", "Joseph Staline", "The Crown", "Lénine", "Plus belle la vie", "Mao Zedong", "Un gars, une fille", "Kaamelott", "Benito Mussolini", "Caméra Café", "Che Guevara", "Bref.", "Fidel Castro", "Les Deschiens", "Margaret Thatcher", "Angela Merkel", "Scènes de ménages", "Fais pas ci, fais pas ça", "Joe Biden", "Dix pour cent", "Emmanuel Macron", "HPI", "Nicolas Sarkozy", "Capitaine Marleau", "Jacques Chirac", "Le Petit Prince", "François Hollande", "Les Misérables", "Marine Le Pen", "Le Comte de Monte-Cristo", "Jean-Luc Mélenchon", "Volodymyr Zelensky", "Les Trois Mousquetaires", "Xi Jinping", "L'Étranger", "Kim Jong-un", "Madame Bovary", "Benyamin Netanyahou", "Germinal", "Lula da Silva", "Narendra Modi", "Dalai Lama", "Vingt mille lieues sous les mers", "Mère Teresa", "Le Seigneur des anneaux", "Malala Yousafzai", "Greta Thunberg", "Millénium", "Anne Frank", "Cinquante nuances de Grey", "Indira Gandhi", "David Bowie", "Frank Sinatra", "Bob Dylan", "Bruce Springsteen", "Boule et Bill", "Elton John", "Paul McCartney", "Freddie Mercury", "Amy Winehouse", "Taylor Swift", "Adele", "Largo Winch", "Britney Spears", "Ed Sheeran", "Dua Lipa", "Dragon Ball", "Harry Styles", "One Piece", "Shakira", "Stromae", "David Guetta", "Les Chevaliers du Zodiaque", "Francis Cabrel", "Olive et Tom", "Renaud", "Sailor Moon", "Patrick Bruel", "Soprano", "Détective Conan", "Gims", "Aya Nakamura", "Angèle", "Tetris", "Pokémon", "Julio Iglesias", "Minecraft", "Enrique Iglesias", "GTA", "Andrea Bocelli", "Fortnite", "Luciano Pavarotti", "Mario Kart", "The Sims", "Wii Sports", "Pac-Man", "Hayao Miyazaki", "Zelda", "Animal Crossing", "Call of Duty", "Candy Crush", "Just Dance", "Rayman", "Les Lapins Crétins", "Mohamed Salah", "Dofus", "Adibou", "La Vie en rose", "Ronaldinho", "La Bohème", "Ne me quitte pas", "Neymar", "Les Copains d'abord", "Je t'aime... moi non plus", "Iker Casillas", "Comme d'habitude", "Sergio Ramos", "Alexandrie Alexandra", "Fernando Alonso", "Les Lacs du Connemara", "Valentino Rossi", "Envole-moi", "Quand la musique est bonne", "Zlatan Ibrahimović", "Je te donne", "Mistral gagnant", "L'Aventurier", "Bernard Arnault", "Voyage voyage", "Nuit de folie", "Giorgio Armani", "Je danse le mia", "Gianni Versace", "La Tribu de Dana", "Karl Lagerfeld", "Désenchantée", "Christian Louboutin", "Pour que tu m'aimes encore", "Henry Ford", "Papaoutai", "Andy Warhol", "Bohemian Rhapsody", "We Will Rock You", "Roger Federer", "We Are the Champions", "Imagine", "Simone Biles", "Yesterday", "Michael Phelps", "Billie Jean", "Magnus Carlsen", "Thriller", "Dancing Queen", "I Will Survive", "Stayin' Alive", "My Heart Will Go On", "Wannabe", "Gangnam Style", "Despacito", "Get Lucky", "Hakuna Matata", "Libérée, délivrée", "Ce rêve bleu", "Ghostbusters", "Eye of the Tiger", "Indochine", "IAM", "MC Solaar", "Daft Punk", "The Beatles", "Queen", "ABBA", "The Rolling Stones", "AC/DC", "Nirvana", "U2", "Coldplay", "Fort Boyard", "Koh-Lanta", "Intervilles", "C'est pas sorcier", "Questions pour un champion", "Des chiffres et des lettres", "Le Juste Prix", "Qui veut gagner des millions ?", "La Roue de la fortune", "Les Z'amours", "Star Academy", "Nouvelle Star", "The Voice", "Top Chef", "L'Amour est dans le pré", "Pékin Express", "Club Dorothée", "Les Minikeums", "Amazon", "Apple", "Google", "YouTube", "Netflix", "Instagram", "Facebook", "LEGO", "IKEA", "Decathlon", "Nike", "McDonald's", "Carrefour", "Leclerc", "Lidl", "Auchan", "Leroy Merlin", "FNAC", "SNCF", "La Poste", "Orange", "Free", "Leboncoin", "Doctolib", "Gmail", "Google Maps", "CAF", "Ameli", "Crédit Agricole", "Banque Postale", "Pepsi", "Outlook", "Hotmail", "Playmobil", "Rubik's Cube", "Tamagotchi", "Polaroid", "Walkman", "iPhone", "Game Boy", "PlayStation", "Nintendo Switch", "TGV", "2 CV", "Vespa", "Minitel", "Post-it", "Kleenex", "Nutella", "Coca-Cola", "Kinder", "Oreo", "M&M's", "Haribo", "Carambar", "Malabar", "Babybel", "Kiri", "La Vache qui rit", "BN", "Danette", "Chocapic", "Pringles", "Orangina", "Ricard", "Big Mac", "PSG", "Ligue 1", "Tour Eiffel", "Louvre", "Château de Versailles", "Notre-Dame de Paris", "Arc de Triomphe", "Mont-Saint-Michel", "Champs-Élysées", "Sacré-Cœur", "Montmartre", "Disneyland Paris", "Statue de la Liberté", "Big Ben", "Colisée", "Tour de Pise", "Taj Mahal", "Grande Muraille de Chine", "Pyramides de Gizeh", "Mont Fuji", "Poudlard", "Mordor", "Gotham City", "Étoile de la Mort", "Mai 68", "Covid-19", "#MeToo", "Black Friday", "Halloween", "Eurovision", "Intelligence artificielle", "QR code", "Internet", "Wikipédia", "Noël", "Saint-Valentin", "Poisson d'avril", "Le Livre dont vous êtes le héros", "Tour de France", "Coupe du monde", "Roland-Garros", "Jeux olympiques", "Jeux paralympiques", "24 Heures du Mans", "Alexandre le Grand", "Andrés Iniesta", "Archimède", "Aristote", "Audrey Hepburn", "Bourvil", "Brigitte Bardot", "Frédéric Chopin", "Jean Gabin", "Jean-Paul Belmondo", "Johann Sebastian Bach", "Lady Diana", "Mariah Carey", "Nadia Comăneci", "Platon", "Socrate", "Whitney Houston", "Aretha Franklin", "Charlemagne", "Louis XVI", "Jack Nicholson", "Windows", "Usain Bolt", "Antoine Dupont"];
+
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=(Math.random()*(i+1))|0;var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function $(id){return document.getElementById(id);}
+function show(id){document.querySelectorAll(".scr").forEach(function(s){s.classList.remove("on");});$(id).classList.add("on");}
+
+// ---------- Équipes : noms & couleurs (MVP, attribution fixe — voir annexe pour la mécanique cible) ----------
+var TEAM_NAMES = [
+  {name:"Kiwis", emoji:"🥝", color:"#FFD166"},
+  {name:"Pandas", emoji:"🐼", color:"#4FD9E8"},
+  {name:"Éclairs", emoji:"⚡", color:"#B79CFF"},
+  {name:"Dragons", emoji:"🐲", color:"#7FE8C0"},
+  {name:"Cactus", emoji:"🌵", color:"#FF6F59"}
+];
+// TODO (post-MVP) : attribution dynamique par catégorie avec élimination (annexe) — non implémentée, ordre fixe ci-dessus.
+
+// N -> options de répartition en équipes (2 options seulement pour 6 et 10)
+var TEAM_CONFIGS = {
+  4:[[2,2]], 5:[[2,3]], 6:[[3,3],[2,2,2]], 7:[[2,2,3]], 8:[[2,2,2,2]],
+  9:[[3,3,3]], 10:[[2,2,2,2,2],[2,2,3,3]], 11:[[2,3,3,3]], 12:[[3,3,3,3]]
+};
+
+var G = null; // état de la partie
+// Persistance : code conservé (save/loadSaved/clearSaved) mais volontairement non appelé en MVP.
+var SAVE_KEY = "tu52_game_v1";
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(G)); }catch(e){} }
+function loadSaved(){ try{ var s=localStorage.getItem(SAVE_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function clearSaved(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+
+function tone(freq, dur, type){
+  try{
+    var ctx=new (window.AudioContext||window.webkitAudioContext)();
+    var o=ctx.createOscillator(),g=ctx.createGain();
+    o.type = type||"sine"; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(.2,ctx.currentTime);
+    o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+function soundOk(){ tone(1046,.15); setTimeout(function(){tone(1568,.2);},110); } // "OK" : deux notes montantes, brèves
+function soundErreurPasse(){ tone(300,.35,"sawtooth"); } // "Erreur / Passe" : buzz grave et bref
+function soundFinDeTour(){ tone(520,.5); setTimeout(function(){tone(260,.6);},250); } // "Fin de tour" : deux notes longues et descendantes
+
+// ---------- Accueil ----------
+// Le bouton "Reprendre la partie" reste caché en MVP (persistance non activée).
+$("b-home-rules").addEventListener("click", function(){ window.open(RULES_URL,"_blank"); });
+$("b-home-new").addEventListener("click", function(){ startConfig(); });
+
+// ---------- Config participants & équipes ----------
+function startConfig(){
+  var wrap = $("config-nb"); wrap.innerHTML="";
+  for (var n=4;n<=12;n++){
+    (function(n){
+      var b=document.createElement("button"); b.className="chip"; b.textContent=n;
+      b.addEventListener("click", function(){ onParticipants(n); });
+      wrap.appendChild(b);
+    })(n);
+  }
+  show("s-config");
+}
+function onParticipants(n){
+  G = { participants:n, manche_courante:1, equipe_courante:0, duree_decompte:30 };
+  var opts = TEAM_CONFIGS[n];
+  if (opts.length > 1){
+    var wrap = $("teamchoice-opts"); wrap.innerHTML="";
+    opts.forEach(function(sizes){
+      var b=document.createElement("button"); b.className="chip";
+      b.textContent = sizes.length+" équipes ("+sizes.join("+")+")";
+      b.addEventListener("click", function(){ chooseTeams(sizes); });
+      wrap.appendChild(b);
+    });
+    show("s-teamchoice");
+  } else {
+    chooseTeams(opts[0]);
+  }
+}
+function chooseTeams(sizes){
+  G.teams = sizes.map(function(sz,i){
+    var n = TEAM_NAMES[i];
+    return {numero:i+1, taille:sz, nom:n.name, emoji:n.emoji, couleur:n.color, score_cumule:0, scores_manches:[0,0,0]};
+  });
+  $("teams-desc").textContent = sizes.length+" équipes : "+sizes.map(function(s){return s+" pers.";}).join(", ")+".";
+  show("s-teams");
+}
+// Table X/Y/Z/W (cartes consultées par joueur selon le mode et le nombre de participants)
+var PLAYER_PREVIEW = {
+  4:{X:12,Y:11,Z:10,W:9}, 5:{X:10,Y:9,Z:8,W:7}, 6:{X:9,Y:8,Z:7,W:6}, 7:{X:8,Y:7,Z:6,W:5},
+  8:{X:7,Y:6,Z:5,W:4}, 9:{X:7,Y:6,Z:5,W:4}, 10:{X:6,Y:5,Z:4,W:3}, 11:{X:6,Y:5,Z:4,W:3}, 12:{X:6,Y:5,Z:4,W:3}
+};
+var MODES = {
+  A:{t0:function(n){return 40+2*n;}, per:function(pv){return pv.X;}, discard:2, label:function(n,pv){return "A — chaque joueur consulte "+pv.X+" thèmes et en écarte 2 ("+(40+2*n)+" thèmes tirés)";}},
+  B:{t0:function(n){return 40+n;}, per:function(pv){return pv.Y;}, discard:1, label:function(n,pv){return "B — chaque joueur consulte "+pv.Y+" thèmes et en écarte 1 ("+(40+n)+" thèmes tirés)";}},
+  C:{t0:function(n){return 40;}, per:function(pv){return pv.Z;}, discard:0, label:function(n,pv){return "C — chaque joueur consulte "+pv.Z+" thèmes, sans en écarter (40 thèmes tirés)";}},
+  D:{t0:function(n){return 40;}, per:function(pv){return 0;}, discard:0, label:function(n,pv){return "D — tirage direct de 40 thèmes, sans aperçu";}}
+};
+$("b-teams-next").addEventListener("click", function(){
+  var pv = PLAYER_PREVIEW[G.participants];
+  var wrap = $("mode-opts"); wrap.innerHTML="";
+  ["A","B","C","D"].forEach(function(key){
+    var m = MODES[key];
+    var b=document.createElement("button"); b.className="chip"; b.textContent = m.label(G.participants, pv);
+    b.addEventListener("click", function(){ chooseMode(key); });
+    wrap.appendChild(b);
+  });
+  show("s-mode");
+});
+function chooseMode(key){
+  var m = MODES[key], pv = PLAYER_PREVIEW[G.participants];
+  var t0 = m.t0(G.participants);
+  var pool = shuffle(THEME_POOL.map(function(t,i){return {id:i,txt:t};})).slice(0, Math.min(t0, THEME_POOL.length));
+  if (key==="D"){
+    G.cartes_en_jeu = pool.map(function(c){ return {id:c.id, txt:c.txt, statut:"disponible"}; });
+    startManche();
+    return;
+  }
+  G._setup = { pool:pool, playerIdx:0, totalPlayers:G.participants, perPlayer:m.per(pv), discardCount:m.discard, deck:shuffle(pool.slice()), ptr:0, discarded:[] };
+  nextSetupPlayer();
+}
+
+// ---------- Setup joueurs (modes A, B, C) ----------
+function nextSetupPlayer(){
+  var s = G._setup;
+  if (s.playerIdx >= s.totalPlayers){ finishSetup(); return; }
+  $("blank-label").textContent = "Passez le téléphone au joueur "+(s.playerIdx+1)+".";
+  show("s-blank");
+}
+function drawPlayerSlice(count){
+  var s = G._setup;
+  var out = [], seen = {}, guard = 0;
+  while (out.length < count && guard < 10000){
+    guard++;
+    if (s.ptr >= s.deck.length){
+      var survivors = s.pool.filter(function(c){ return s.discarded.indexOf(c.id)===-1; });
+      if (survivors.length === 0) break; // sécurité : plus aucun thème disponible
+      s.deck = shuffle(survivors); s.ptr = 0;
+    }
+    var card = s.deck[s.ptr]; s.ptr++;
+    if (!seen[card.id]){ seen[card.id]=true; out.push(card); } // évite un doublon dans le lot d'un même joueur
+  }
+  return out;
+}
+$("b-blank-next").addEventListener("click", function(){
+  var s = G._setup;
+  var slice = drawPlayerSlice(s.perPlayer);
+  s._current = slice; s._picked = [];
+  $("pick-who").textContent = "Joueur "+(s.playerIdx+1)+" / "+s.totalPlayers;
+  $("pick-sub").textContent = s.discardCount>0
+    ? "Sélectionnez "+s.discardCount+" thème"+(s.discardCount>1?"s":"")+" à écarter de la partie."
+    : "Consultez vos thèmes, puis continuez.";
+  $("b-pick-done").textContent = s.discardCount>0 ? "Retirer le"+(s.discardCount>1?"s":"")+" thème"+(s.discardCount>1?"s":"")+" sélectionné"+(s.discardCount>1?"s":"") : "Continuer";
+  var list = $("pick-list"); list.innerHTML="";
+  slice.forEach(function(c){
+    var d=document.createElement("div"); d.className="card"; d.textContent=c.txt;
+    if (s.discardCount>0){
+      d.addEventListener("click", function(){
+        var idx=s._picked.indexOf(c.id);
+        if(idx>-1){ s._picked.splice(idx,1); d.removeAttribute("aria-pressed"); }
+        else if(s._picked.length<s.discardCount){ s._picked.push(c.id); d.setAttribute("aria-pressed","true"); }
+        $("b-pick-done").disabled = s._picked.length!==s.discardCount;
+      });
+    }
+    list.appendChild(d);
+  });
+  $("b-pick-done").disabled = s.discardCount>0;
+  show("s-pick");
+});
+$("b-pick-done").addEventListener("click", function(){
+  var s = G._setup;
+  s.discarded = s.discarded.concat(s._picked);
+  s.playerIdx++;
+  nextSetupPlayer();
+});
+function finishSetup(){
+  var s = G._setup;
+  var kept = s.pool.filter(function(c){ return s.discarded.indexOf(c.id)===-1; });
+  G.cartes_en_jeu = shuffle(kept).slice(0,40).map(function(c){ return {id:c.id, txt:c.txt, statut:"disponible"}; });
+  delete G._setup;
+  startManche();
+}
+
+// ---------- Manches ----------
+var MANCHE_DESC = {
+  1: "Décrivez librement le thème (interdit : dire plus d'un mot, épeler).",
+  2: "Un seul mot autorisé (interdits : gestes, bruitages).",
+  3: "Mimez le thème, sans parler ni fredonner."
+};
+function startManche(){
+  G.equipe_courante = 0;
+  G.cartes_en_jeu.forEach(function(c){ c.statut = "disponible"; }); // en début de manche, tous les thèmes redeviennent disponibles
+  $("pm-title").textContent = "Manche "+G.manche_courante+" / 3";
+  $("pm-desc").textContent = MANCHE_DESC[G.manche_courante];
+  var dwrap = $("pm-duration"); dwrap.innerHTML="";
+  [10,30,45,60].forEach(function(d){
+    var b=document.createElement("button"); b.className="chip"; b.textContent=d+"s";
+    if(d===G.duree_decompte) b.setAttribute("aria-pressed","true");
+    b.addEventListener("click", function(){
+      dwrap.querySelectorAll(".chip").forEach(function(c){c.removeAttribute("aria-pressed");});
+      b.setAttribute("aria-pressed","true"); G.duree_decompte=d;
+    });
+    dwrap.appendChild(b);
+  });
+  show("s-premanche");
+}
+$("b-pm-rules").addEventListener("click", function(){ window.open(RULES_URL,"_blank"); });
+$("b-pm-start").addEventListener("click", function(){ setupTurn(); });
+
+// ---------- Tour d'équipe ----------
+var timerId=null, timeLeft=0;
+
+function setupTurn(){
+  var team = G.teams[G.equipe_courante];
+  $("g-manche").textContent = "Manche "+G.manche_courante;
+  $("g-team").textContent = team.emoji+" "+team.nom;
+  $("g-team").style.background = team.couleur; $("g-team").style.color = "#000";
+  $("g-time").style.color = team.couleur;
+  $("g-time").textContent = "--";
+  $("g-progress").textContent = "";
+  $("g-theme").textContent = "Prêt ?";
+  $("g-actions").innerHTML = '<button class="btn" id="b-g-next">Joueur suivant</button>';
+  $("b-g-next").addEventListener("click", startTurn);
+  show("s-game");
+}
+function startTurn(){
+  timeLeft = G.duree_decompte;
+  // les thèmes "sauté" redeviennent disponibles (seuls les "deviné" restent indisponibles), puis on tire l'ordre de ce tour
+  G.cartes_en_jeu.forEach(function(c){ if(c.statut==="saute") c.statut="disponible"; });
+  G._turnDeck = shuffle(G.cartes_en_jeu.filter(function(c){ return c.statut==="disponible"; }));
+  G._turnPos = 0; G._turnShown = 0;
+  renderActions();
+  if (showNextTheme()) runTimer();
+}
+function runTimer(){
+  clearInterval(timerId);
+  $("g-time").textContent = timeLeft;
+  timerId = setInterval(function(){
+    timeLeft--;
+    $("g-time").textContent = timeLeft;
+    if (timeLeft<=0){ clearInterval(timerId); endTurn(); }
+  },1000);
+}
+function pauseTimer(){ clearInterval(timerId); }
+function resumeTimer(){ runTimer(); }
+
+function showNextTheme(){
+  if (G._turnPos >= G._turnDeck.length){ endTurn(); return false; }
+  G._current = G._turnDeck[G._turnPos];
+  G._turnPos++; G._turnShown++;
+  $("g-progress").textContent = "Thème "+G._turnShown+" / "+G._turnDeck.length;
+  $("g-theme").textContent = G._current.txt;
+  return true;
+}
+function renderActions(){
+  var html = '<button class="btn" id="b-guess">Thème deviné</button>';
+  if (G.manche_courante >= 2){
+    html += '<button class="btn ghost" id="b-skip">Erreur / Passer thème</button>';
+  }
+  html += '<button class="btn danger" id="b-faute">Faute</button>';
+  $("g-actions").innerHTML = html;
+  $("b-guess").addEventListener("click", function(){
+    soundOk();
+    var team = G.teams[G.equipe_courante];
+    team.scores_manches[G.manche_courante-1]++;
+    team.score_cumule++;
+    G._current.statut = "devine"; // indisponible pour toutes les équipes jusqu'à la fin de la manche
+    showNextTheme();
+  });
+  var skipBtn = $("b-skip");
+  if (skipBtn) skipBtn.addEventListener("click", function(){
+    soundErreurPasse();
+    G._current.statut = "saute"; // indisponible pour cette équipe sur ce tour seulement
+    showNextTheme();
+  });
+  $("b-faute").addEventListener("click", function(){
+    pauseTimer(); $("p-error").classList.add("on");
+  });
+}
+$("b-err-yes").addEventListener("click", function(){ $("p-error").classList.remove("on"); endTurn(); });
+$("b-err-no").addEventListener("click", function(){ $("p-error").classList.remove("on"); resumeTimer(); });
+
+function endTurn(){
+  clearInterval(timerId);
+  soundFinDeTour();
+  var resteDesThemes = G.cartes_en_jeu.some(function(c){ return c.statut!=="devine"; });
+  if (!resteDesThemes){ endManche(); return; }
+  G.equipe_courante = (G.equipe_courante+1) % G.teams.length;
+  setupTurn();
+}
+
+function endManche(){
+  var wrap = $("em-scores"); wrap.innerHTML="";
+  G.teams.forEach(function(t){
+    var d=document.createElement("div"); d.className="score-row";
+    d.style.borderLeft = "5px solid "+t.couleur;
+    d.style.background = "linear-gradient(90deg,"+t.couleur+"22,var(--bg-raised) 25%)";
+    d.innerHTML = "<span>"+t.emoji+" "+t.nom+"</span><span>manche: "+t.scores_manches[G.manche_courante-1]+" · total: "+t.score_cumule+"</span>";
+    wrap.appendChild(d);
+  });
+  show("s-endmanche");
+}
+$("b-em-rules").addEventListener("click", function(){ window.open(RULES_URL,"_blank"); });
+$("b-em-next").addEventListener("click", function(){
+  if (G.manche_courante < 3){ G.manche_courante++; startManche(); }
+  else { endGame(); }
+});
+
+function endGame(){
+  var wrap = $("end-scores"); wrap.innerHTML="";
+  var sorted = G.teams.slice().sort(function(a,b){return b.score_cumule-a.score_cumule;});
+  sorted.forEach(function(t,i){
+    var d=document.createElement("div"); d.className="score-row";
+    d.style.borderLeft = "5px solid "+t.couleur;
+    d.style.background = "linear-gradient(90deg,"+t.couleur+(i===0?"33":"18")+",var(--bg-raised) 25%)";
+    d.innerHTML = "<span>"+(i===0?"🏆 ":"")+t.emoji+" "+t.nom+"</span><span>"+t.score_cumule+" pts</span>";
+    wrap.appendChild(d);
+  });
+  $("end-themes-title").textContent = "Les "+G.cartes_en_jeu.length+" thèmes";
+  var tw = $("end-themes"); tw.innerHTML="";
+  G.cartes_en_jeu.forEach(function(c){
+    var d=document.createElement("div"); d.className="card"; d.style.fontSize="14px"; d.textContent=c.txt;
+    tw.appendChild(d);
+  });
+  show("s-end");
+}
+$("b-end-new").addEventListener("click", function(){ show("s-home"); });
+
+// ---------- Quitter ----------
+$("b-game-quit").addEventListener("click", function(){ pauseTimer(); $("p-quit").classList.add("on"); });
+$("b-quit-no").addEventListener("click", function(){ $("p-quit").classList.remove("on"); resumeTimer(); });
+$("b-quit-yes").addEventListener("click", function(){ $("p-quit").classList.remove("on"); show("s-home"); });
+
+show("s-home");
+})();
+</script>
+</body>
+</html>
