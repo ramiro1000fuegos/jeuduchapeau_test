@@ -235,9 +235,18 @@ function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(G)); }catch(
 function loadSaved(){ try{ var s=localStorage.getItem(SAVE_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
 function clearSaved(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 
+var audioCtx = null;
+function getAudioCtx(){
+  if (!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  if (audioCtx.state === "suspended"){ try{ audioCtx.resume(); }catch(e){} }
+  return audioCtx;
+}
 function tone(freq, dur, type){
+  var ctx = getAudioCtx();
+  if (!ctx) return;
   try{
-    var ctx=new (window.AudioContext||window.webkitAudioContext)();
     var o=ctx.createOscillator(),g=ctx.createGain();
     o.type = type||"sine"; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination);
     g.gain.setValueAtTime(.2,ctx.currentTime);
