@@ -62,6 +62,13 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
   <div class="row" id="config-nb"></div>
 </div>
 
+<div id="s-teamnames" class="scr center">
+  <div id="tn-badge" style="padding:8px 16px;border-radius:10px;font-weight:700;margin-bottom:14px;"></div>
+  <h2>Choisissez le nom de votre équipe</h2>
+  <div class="row" id="tn-opts" style="flex-direction:column"></div>
+  <button class="btn ghost" id="b-tn-skip" style="margin-top:14px">Sauter cette étape</button>
+</div>
+
 <div id="s-teams" class="scr center">
   <h2>Formation des équipes</h2>
   <p class="sub" id="teams-desc"></p>
@@ -147,7 +154,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
 <script>
 (function(){
 "use strict";
-var RULES_URL = "https://example.com/regles-times-up"; // TODO: URL réelle des règles
+var RULES_URL = "https://docs.google.com/document/d/1WHx75ABv1MLXtEaqXkZOlNrHzzcas8dBj8_wx8ouzMk/edit?usp=sharing";
 
 // 594 thèmes fournis par l'utilisateur (personnages, films, séries, marques, lieux, chansons...)
 var THEME_POOL = ["Michael Jackson", "Napoléon Bonaparte", "Albert Einstein", "Zinédine Zidane", "Cristiano Ronaldo", "Édith Piaf", "Charles Aznavour", "Lionel Messi", "Claude François", "Johnny Hallyday", "Dalida", "Elvis Presley", "Adolf Hitler", "Serge Gainsbourg", "Charles de Gaulle", "Jacques Brel", "Georges Brassens", "Jean-Jacques Goldman", "Louis de Funès", "Madonna", "Barack Obama", "Marilyn Monroe", "Nelson Mandela", "Leonardo DiCaprio", "Beyoncé", "Brad Pitt", "Tom Cruise", "Arnold Schwarzenegger", "Céline Dion", "Omar Sy", "Bob Marley", "Jackie Chan", "Bruce Lee", "Cléopâtre", "Will Smith", "Lady Gaga", "Rihanna", "Eminem", "Gandhi", "Donald Trump", "Astérix", "Kylian Mbappé", "Pelé", "Obélix", "Diego Maradona", "Tintin", "Michel Sardou", "Lucky Luke", "Mylène Farmer", "Gaston Lagaffe", "Sophie Marceau", "Titeuf", "Jean Reno", "Le Petit Nicolas", "Jean Dujardin", "Les Schtroumpfs", "Dany Boon", "Marsupilami", "François Mitterrand", "Spirou", "Louis XIV", "Le Chat", "Marie-Antoinette", "Les Dalton", "Jeanne d'Arc", "Mickey", "Pablo Picasso", "Donald", "Victor Hugo", "Picsou", "Jules César", "Winnie l'Ourson", "Peter Pan", "Alice", "Winston Churchill", "Elizabeth II", "Pinocchio", "Cendrillon", "Steve Jobs", "Blanche-Neige", "Bill Gates", "Barbie", "Elon Musk", "Vladimir Poutine", "Superman", "Batman", "Martin Luther King", "Spider-Man", "Marie Curie", "Hulk", "Louis Pasteur", "Wonder Woman", "Léonard de Vinci", "James Bond", "Mozart", "Indiana Jones", "Beethoven", "Rocky", "William Shakespeare", "Rambo", "Molière", "Dark Vador", "Alexandre Dumas", "Jules Verne", "Yoda", "Antoine de Saint-Exupéry", "Harry Potter", "Albert Camus", "Sherlock Holmes", "Dracula", "Salvador Dalí", "Claude Monet", "Frankenstein", "Gustave Eiffel", "Zorro", "Frida Kahlo", "Tarzan", "Coco Chanel", "King Kong", "David Beckham", "Mr Bean", "Michael Jordan", "Homer Simpson", "Bart Simpson", "Muhammad Ali", "Mike Tyson", "Scooby-Doo", "Michael Schumacher", "Mario", "Rafael Nadal", "Luigi", "Novak Djokovic", "Sonic", "Tiger Woods", "Pikachu", "Serena Williams", "Lewis Hamilton", "Lara Croft", "Alain Prost", "Link", "Donkey Kong", "Thierry Henry", "Karim Benzema", "Kirby", "Antoine Griezmann", "Teddy Riner", "Son Goku", "Thomas Pesquet", "Naruto", "Didier Deschamps", "Luffy", "Michel Platini", "Alain Delon", "Nicky Larson", "Catherine Deneuve", "Père Noël", "Gérard Depardieu", "Père Fouettard", "Marion Cotillard", "Petit Chaperon rouge", "Isabelle Adjani", "Robin des Bois", "Don Quichotte", "Cyrano de Bergerac", "Penélope Cruz", "Don Juan", "Antonio Banderas", "Carmen", "Javier Bardem", "Salma Hayek", "Perceval", "Monica Bellucci", "Karadoc", "Sophia Loren", "Roi Arthur", "Robert De Niro", "Merlin le Magicien", "Al Pacino", "Jean-Claude Convenant", "Hervé Dumont", "Morgan Freeman", "Denzel Washington", "La Grande Vadrouille", "Bienvenue chez les Ch'tis", "Tom Hanks", "Intouchables", "Robin Williams", "Astérix et Obélix : Mission Cléopâtre", "Sylvester Stallone", "Jim Carrey", "Les Visiteurs", "Jennifer Lopez", "Le Dîner de cons", "Angelina Jolie", "Les Bronzés", "Julia Roberts", "Le Père Noël est une ordure", "Meryl Streep", "Les Tontons flingueurs", "Scarlett Johansson", "Le Gendarme de Saint-Tropez", "Natalie Portman", "Emma Watson", "Le Fabuleux Destin d'Amélie Poulain", "Sean Connery", "La Cité de la peur", "Charlie Chaplin", "OSS 117", "Anthony Hopkins", "Les Choristes", "Daniel Craig", "Titanic", "Star Wars", "Hugh Grant", "Steven Spielberg", "George Lucas", "Jurassic Park", "James Cameron", "Le Roi Lion", "Quentin Tarantino", "Retour vers le futur", "Alfred Hitchcock", "Christopher Nolan", "Walt Disney", "Terminator", "Stephen King", "Matrix", "Agatha Christie", "Pirates des Caraïbes", "J. K. Rowling", "Ernest Hemingway", "Mission: Impossible", "Avengers", "Edgar Allan Poe", "Charles Darwin", "Nikola Tesla", "Forrest Gump", "Isaac Newton", "Thomas Edison", "Maman, j'ai raté l'avion", "E.T.", "Alexander Graham Bell", "Grease", "Stephen Hawking", "Dirty Dancing", "Sigmund Freud", "Le Parrain", "Karl Marx", "Friends", "Friedrich Nietzsche", "Game of Thrones", "Jésus", "Breaking Bad", "Bouddha", "Mahomet", "The Walking Dead", "La Casa de Papel", "Galilée", "Christophe Colomb", "Peaky Blinders", "Gengis Khan", "Stranger Things", "Abraham Lincoln", "The Office", "George Washington", "Squid Game", "Joseph Staline", "The Crown", "Lénine", "Plus belle la vie", "Mao Zedong", "Un gars, une fille", "Kaamelott", "Benito Mussolini", "Caméra Café", "Che Guevara", "Bref.", "Fidel Castro", "Les Deschiens", "Margaret Thatcher", "Angela Merkel", "Scènes de ménages", "Fais pas ci, fais pas ça", "Joe Biden", "Dix pour cent", "Emmanuel Macron", "HPI", "Nicolas Sarkozy", "Capitaine Marleau", "Jacques Chirac", "Le Petit Prince", "François Hollande", "Les Misérables", "Marine Le Pen", "Le Comte de Monte-Cristo", "Jean-Luc Mélenchon", "Volodymyr Zelensky", "Les Trois Mousquetaires", "Xi Jinping", "L'Étranger", "Kim Jong-un", "Madame Bovary", "Benyamin Netanyahou", "Germinal", "Lula da Silva", "Narendra Modi", "Dalai Lama", "Vingt mille lieues sous les mers", "Mère Teresa", "Le Seigneur des anneaux", "Malala Yousafzai", "Greta Thunberg", "Millénium", "Anne Frank", "Cinquante nuances de Grey", "Indira Gandhi", "David Bowie", "Frank Sinatra", "Bob Dylan", "Bruce Springsteen", "Boule et Bill", "Elton John", "Paul McCartney", "Freddie Mercury", "Amy Winehouse", "Taylor Swift", "Adele", "Largo Winch", "Britney Spears", "Ed Sheeran", "Dua Lipa", "Dragon Ball", "Harry Styles", "One Piece", "Shakira", "Stromae", "David Guetta", "Les Chevaliers du Zodiaque", "Francis Cabrel", "Olive et Tom", "Renaud", "Sailor Moon", "Patrick Bruel", "Soprano", "Détective Conan", "Gims", "Aya Nakamura", "Angèle", "Tetris", "Pokémon", "Julio Iglesias", "Minecraft", "Enrique Iglesias", "GTA", "Andrea Bocelli", "Fortnite", "Luciano Pavarotti", "Mario Kart", "The Sims", "Wii Sports", "Pac-Man", "Hayao Miyazaki", "Zelda", "Animal Crossing", "Call of Duty", "Candy Crush", "Just Dance", "Rayman", "Les Lapins Crétins", "Mohamed Salah", "Dofus", "Adibou", "La Vie en rose", "Ronaldinho", "La Bohème", "Ne me quitte pas", "Neymar", "Les Copains d'abord", "Je t'aime... moi non plus", "Iker Casillas", "Comme d'habitude", "Sergio Ramos", "Alexandrie Alexandra", "Fernando Alonso", "Les Lacs du Connemara", "Valentino Rossi", "Envole-moi", "Quand la musique est bonne", "Zlatan Ibrahimović", "Je te donne", "Mistral gagnant", "L'Aventurier", "Bernard Arnault", "Voyage voyage", "Nuit de folie", "Giorgio Armani", "Je danse le mia", "Gianni Versace", "La Tribu de Dana", "Karl Lagerfeld", "Désenchantée", "Christian Louboutin", "Pour que tu m'aimes encore", "Henry Ford", "Papaoutai", "Andy Warhol", "Bohemian Rhapsody", "We Will Rock You", "Roger Federer", "We Are the Champions", "Imagine", "Simone Biles", "Yesterday", "Michael Phelps", "Billie Jean", "Magnus Carlsen", "Thriller", "Dancing Queen", "I Will Survive", "Stayin' Alive", "My Heart Will Go On", "Wannabe", "Gangnam Style", "Despacito", "Get Lucky", "Hakuna Matata", "Libérée, délivrée", "Ce rêve bleu", "Ghostbusters", "Eye of the Tiger", "Indochine", "IAM", "MC Solaar", "Daft Punk", "The Beatles", "Queen", "ABBA", "The Rolling Stones", "AC/DC", "Nirvana", "U2", "Coldplay", "Fort Boyard", "Koh-Lanta", "Intervilles", "C'est pas sorcier", "Questions pour un champion", "Des chiffres et des lettres", "Le Juste Prix", "Qui veut gagner des millions ?", "La Roue de la fortune", "Les Z'amours", "Star Academy", "Nouvelle Star", "The Voice", "Top Chef", "L'Amour est dans le pré", "Pékin Express", "Club Dorothée", "Les Minikeums", "Amazon", "Apple", "Google", "YouTube", "Netflix", "Instagram", "Facebook", "LEGO", "IKEA", "Decathlon", "Nike", "McDonald's", "Carrefour", "Leclerc", "Lidl", "Auchan", "Leroy Merlin", "FNAC", "SNCF", "La Poste", "Orange", "Free", "Leboncoin", "Doctolib", "Gmail", "Google Maps", "CAF", "Ameli", "Crédit Agricole", "Banque Postale", "Pepsi", "Outlook", "Hotmail", "Playmobil", "Rubik's Cube", "Tamagotchi", "Polaroid", "Walkman", "iPhone", "Game Boy", "PlayStation", "Nintendo Switch", "TGV", "2 CV", "Vespa", "Minitel", "Post-it", "Kleenex", "Nutella", "Coca-Cola", "Kinder", "Oreo", "M&M's", "Haribo", "Carambar", "Malabar", "Babybel", "Kiri", "La Vache qui rit", "BN", "Danette", "Chocapic", "Pringles", "Orangina", "Ricard", "Big Mac", "PSG", "Ligue 1", "Tour Eiffel", "Louvre", "Château de Versailles", "Notre-Dame de Paris", "Arc de Triomphe", "Mont-Saint-Michel", "Champs-Élysées", "Sacré-Cœur", "Montmartre", "Disneyland Paris", "Statue de la Liberté", "Big Ben", "Colisée", "Tour de Pise", "Taj Mahal", "Grande Muraille de Chine", "Pyramides de Gizeh", "Mont Fuji", "Poudlard", "Mordor", "Gotham City", "Étoile de la Mort", "Mai 68", "Covid-19", "#MeToo", "Black Friday", "Halloween", "Eurovision", "Intelligence artificielle", "QR code", "Internet", "Wikipédia", "Noël", "Saint-Valentin", "Poisson d'avril", "Le Livre dont vous êtes le héros", "Tour de France", "Coupe du monde", "Roland-Garros", "Jeux olympiques", "Jeux paralympiques", "24 Heures du Mans", "Alexandre le Grand", "Andrés Iniesta", "Archimède", "Aristote", "Audrey Hepburn", "Bourvil", "Brigitte Bardot", "Frédéric Chopin", "Jean Gabin", "Jean-Paul Belmondo", "Johann Sebastian Bach", "Lady Diana", "Mariah Carey", "Nadia Comăneci", "Platon", "Socrate", "Whitney Houston", "Aretha Franklin", "Charlemagne", "Louis XVI", "Jack Nicholson", "Windows", "Usain Bolt", "Antoine Dupont"];
@@ -156,15 +163,27 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=(Math.random
 function $(id){return document.getElementById(id);}
 function show(id){document.querySelectorAll(".scr").forEach(function(s){s.classList.remove("on");});$(id).classList.add("on");}
 
-// ---------- Équipes : noms & couleurs (MVP, attribution fixe — voir annexe pour la mécanique cible) ----------
-var TEAM_NAMES = [
-  {name:"Kiwis", emoji:"🥝", color:"#FFD166"},
-  {name:"Pandas", emoji:"🐼", color:"#4FD9E8"},
-  {name:"Éclairs", emoji:"⚡", color:"#B79CFF"},
-  {name:"Dragons", emoji:"🐲", color:"#7FE8C0"},
-  {name:"Cactus", emoji:"🌵", color:"#FF6F59"}
+// ---------- Équipes : couleurs (fixes) & noms (choisis dynamiquement, voir annexe) ----------
+var TEAM_COLORS = ["#FFD166","#4FD9E8","#B79CFF","#7FE8C0","#FF6F59"];
+var NAME_POOL = [
+  {name:"Kiwis",emoji:"🥝",category:"FOOD"},{name:"Biscuits",emoji:"🍪",category:"FOOD"},{name:"Bretzels",emoji:"🥨",category:"FOOD"},
+  {name:"Citrons",emoji:"🍋",category:"FOOD"},{name:"Pastèques",emoji:"🍉",category:"FOOD"},{name:"Cerises",emoji:"🍒",category:"FOOD"},
+  {name:"Pandas",emoji:"🐼",category:"ANIMALS"},{name:"Dinosaures",emoji:"🦖",category:"ANIMALS"},{name:"Renards",emoji:"🦊",category:"ANIMALS"},
+  {name:"Flamants",emoji:"🦩",category:"ANIMALS"},{name:"Hiboux",emoji:"🦉",category:"ANIMALS"},{name:"Poulpes",emoji:"🐙",category:"ANIMALS"},
+  {name:"Requins",emoji:"🦈",category:"ANIMALS"},{name:"Tortues",emoji:"🐢",category:"ANIMALS"},{name:"Lions",emoji:"🦁",category:"ANIMALS"},
+  {name:"Grenouilles",emoji:"🐸",category:"ANIMALS"},
+  {name:"Météores",emoji:"☄️",category:"SKY"},{name:"Éclairs",emoji:"⚡",category:"SKY"},{name:"Tornades",emoji:"🌪️",category:"SKY"},
+  {name:"Arcs-en-ciel",emoji:"🌈",category:"SKY"},{name:"Lunes",emoji:"🌙",category:"SKY"},{name:"Étoiles",emoji:"⭐",category:"SKY"},
+  {name:"Planètes",emoji:"🪐",category:"SKY"},
+  {name:"Licornes",emoji:"🦄",category:"IMAGINATION"},{name:"Dragons",emoji:"🐲",category:"IMAGINATION"},{name:"Fantômes",emoji:"👻",category:"IMAGINATION"},
+  {name:"Zombies",emoji:"🧟",category:"IMAGINATION"},{name:"Aliens",emoji:"🛸",category:"IMAGINATION"},{name:"Pirates",emoji:"🏴‍☠️",category:"IMAGINATION"},
+  {name:"Ninjas",emoji:"🥷",category:"IMAGINATION"},{name:"Sorciers",emoji:"🧙",category:"IMAGINATION"},
+  {name:"Puzzles",emoji:"🧩",category:"OTHER"},{name:"Cactus",emoji:"🌵",category:"OTHER"},{name:"Diamants",emoji:"💎",category:"OTHER"},
+  {name:"Fusées",emoji:"🚀",category:"OTHER"},{name:"Volcans",emoji:"🌋",category:"OTHER"},{name:"Flammes",emoji:"🔥",category:"OTHER"}
 ];
-// TODO (post-MVP) : attribution dynamique par catégorie avec élimination (annexe) — non implémentée, ordre fixe ci-dessus.
+var FIXED_NAMES = [ // utilisé si "Sauter cette étape" (un nom par catégorie, ordre fixe)
+  {name:"Kiwis",emoji:"🥝"},{name:"Pandas",emoji:"🐼"},{name:"Éclairs",emoji:"⚡"},{name:"Dragons",emoji:"🐲"},{name:"Cactus",emoji:"🌵"}
+];
 
 // N -> options de répartition en équipes (2 options seulement pour 6 et 10)
 var TEAM_CONFIGS = {
@@ -227,12 +246,61 @@ function onParticipants(n){
 }
 function chooseTeams(sizes){
   G.teams = sizes.map(function(sz,i){
-    var n = TEAM_NAMES[i];
-    return {numero:i+1, taille:sz, nom:n.name, emoji:n.emoji, couleur:n.color, score_cumule:0, scores_manches:[0,0,0]};
+    return {numero:i+1, taille:sz, nom:null, emoji:null, couleur:TEAM_COLORS[i], score_cumule:0, scores_manches:[0,0,0]};
   });
   $("teams-desc").textContent = sizes.length+" équipes : "+sizes.map(function(s){return s+" pers.";}).join(", ")+".";
   show("s-teams");
 }
+
+// ---------- Choix des noms d'équipe (voir annexe) ----------
+function startNameSelection(){
+  G._nameSel = { idx:0, categories: ["FOOD","ANIMALS","SKY","IMAGINATION","OTHER"], pool: NAME_POOL.slice() };
+  showNameStep();
+}
+function pickProposals(pool, categories){
+  var byCat = {};
+  categories.forEach(function(cat){ byCat[cat] = shuffle(pool.filter(function(n){return n.category===cat;})); });
+  var order = shuffle(categories.slice());
+  var result = [], used = {}, i = 0, guard = 0;
+  while (result.length < 4 && order.length > 0 && guard < 500){
+    guard++;
+    var cat = order[i % order.length];
+    var arr = byCat[cat];
+    var found = null;
+    for (var k=0;k<arr.length;k++){ if(!used[arr[k].name]){ found=arr[k]; break; } }
+    if (found){ used[found.name]=true; result.push(found); i++; }
+    else { order.splice(order.indexOf(cat),1); }
+  }
+  return result;
+}
+function showNameStep(){
+  var s = G._nameSel;
+  if (s.idx >= G.teams.length){ delete G._nameSel; startModeSelection(); return; }
+  var team = G.teams[s.idx];
+  var badge = $("tn-badge");
+  badge.textContent = "Équipe "+team.numero;
+  badge.style.background = team.couleur; badge.style.color = "#000";
+  var proposals = pickProposals(s.pool, s.categories);
+  var wrap = $("tn-opts"); wrap.innerHTML="";
+  proposals.forEach(function(n){
+    var b=document.createElement("button"); b.className="chip"; b.textContent = n.emoji+" "+n.name;
+    b.addEventListener("click", function(){
+      team.nom = n.name; team.emoji = n.emoji;
+      s.categories = s.categories.filter(function(c){ return c!==n.category; });
+      s.pool = s.pool.filter(function(p){ return p.category!==n.category; });
+      s.idx++;
+      showNameStep();
+    });
+    wrap.appendChild(b);
+  });
+  $("b-tn-skip").style.display = (s.idx===0) ? "block" : "none";
+  show("s-teamnames");
+}
+$("b-tn-skip").addEventListener("click", function(){
+  G.teams.forEach(function(t,i){ t.nom = FIXED_NAMES[i].name; t.emoji = FIXED_NAMES[i].emoji; });
+  delete G._nameSel;
+  startModeSelection();
+});
 // Table X/Y/Z/W (cartes consultées par joueur selon le mode et le nombre de participants)
 var PLAYER_PREVIEW = {
   4:{X:12,Y:11,Z:10,W:9}, 5:{X:10,Y:9,Z:8,W:7}, 6:{X:9,Y:8,Z:7,W:6}, 7:{X:8,Y:7,Z:6,W:5},
@@ -245,7 +313,7 @@ var MODES = {
   D:{t0:function(n){return 40;}, per:function(pv){return 0;}, discard:0, label:function(n,pv){return "D — tirage direct de 40 thèmes, sans aperçu";}},
   E:{t0:function(n){return 40-n;}, per:function(pv){return pv.W;}, discard:0, label:function(n,pv){return "E — chaque joueur consulte "+pv.W+" thèmes et en saisit un nouveau ("+(40-n)+" thèmes tirés)";}}
 };
-$("b-teams-next").addEventListener("click", function(){
+function startModeSelection(){
   var pv = PLAYER_PREVIEW[G.participants];
   var wrap = $("mode-opts"); wrap.innerHTML="";
   ["A","B","C","D","E"].forEach(function(key){
@@ -255,7 +323,8 @@ $("b-teams-next").addEventListener("click", function(){
     wrap.appendChild(b);
   });
   show("s-mode");
-});
+}
+$("b-teams-next").addEventListener("click", function(){ startNameSelection(); });
 function chooseMode(key){
   var m = MODES[key], pv = PLAYER_PREVIEW[G.participants];
   var t0 = m.t0(G.participants);
