@@ -25,7 +25,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
   width:auto;
   margin:10px auto 60px;
   object-fit:contain;
-}    
+}      
 .scr{flex:1;display:none;flex-direction:column;min-height:0;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));}
 .scr.on{display:flex;}
 .center{align-items:center;justify-content:center;text-align:center;}
@@ -55,20 +55,26 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
 .popup-box{background:var(--bg-raised);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:340px;text-align:center;}
 .score-row{display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg-raised);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:16px;}
 </style>
-
-<script data-goatcounter="https://jeuduchapeau.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-  
 </head>
 <body>
 
 <div id="s-home" class="scr center">
   <!--<h1>Jeu du chapeau</h1>-->
   <img src="Titre_Jeu_Du_Chapeau.png" alt="Jeu du Chapeau" class="rv-titre-image">
-  
   <p class="sub">Devinez un maximum de thèmes en 3 manches.</p>
   <button class="btn" id="b-home-new">Nouvelle partie</button>
   <button class="btn ghost" id="b-home-resume" style="display:none">Reprendre la partie</button>
   <button class="btn ghost" id="b-home-rules">Règles du jeu</button>
+  <button class="btn ghost" id="b-home-sources">Gérer les sources</button>
+</div>
+
+<div id="s-sources" class="scr center">
+  <h2>Sources de thèmes</h2>
+  <p class="sub">Sélectionnez la source à utiliser pour la prochaine partie.</p>
+  <div class="scroll" id="sources-list" style="width:100%;max-width:360px"></div>
+  <input type="file" id="src-file-input" accept=".csv,.txt" style="display:none">
+  <button class="btn" id="b-src-import" style="margin-top:14px">Importer un fichier (.csv ou .txt)</button>
+  <button class="btn ghost" id="b-src-back" style="margin-top:10px">Retour</button>
 </div>
 
 <div id="s-config" class="scr center">
@@ -232,6 +238,65 @@ function soundFinDeTour(){ tone(520,.5); setTimeout(function(){tone(260,.6);},25
 $("b-home-rules").addEventListener("click", function(){ window.open(RULES_URL,"_blank"); });
 $("b-home-new").addEventListener("click", function(){ startConfig(); });
 
+// ---------- Sources de thèmes (par défaut ou importées en CSV/TXT, une ligne = un thème) ----------
+var SOURCES_KEY = "tu52_sources_v1", ACTIVE_SOURCE_KEY = "tu52_active_source_v1";
+function loadSources(){ try{ return JSON.parse(localStorage.getItem(SOURCES_KEY))||[]; }catch(e){ return []; } }
+function saveSources(list){ try{ localStorage.setItem(SOURCES_KEY, JSON.stringify(list)); }catch(e){} }
+function getActiveSourceId(){ try{ return localStorage.getItem(ACTIVE_SOURCE_KEY) || "default"; }catch(e){ return "default"; } }
+function setActiveSourceId(id){ try{ localStorage.setItem(ACTIVE_SOURCE_KEY, id); }catch(e){} }
+function getActiveThemePool(){
+  var id = getActiveSourceId();
+  if (id==="default") return THEME_POOL;
+  var src = loadSources().filter(function(s){ return s.id===id; })[0];
+  return src ? src.themes : THEME_POOL; // filet de sécurité si la source active a été supprimée entretemps
+}
+function renderSources(){
+  var wrap = $("sources-list"); wrap.innerHTML="";
+  var activeId = getActiveSourceId();
+  var all = [{id:"default", name:"Source par défaut ("+THEME_POOL.length+" thèmes)", deletable:false}]
+    .concat(loadSources().map(function(s){ return {id:s.id, name:s.name+" ("+s.themes.length+" thèmes)", deletable:true}; }));
+  all.forEach(function(src){
+    var row = document.createElement("div"); row.className="score-row"; row.style.cursor="pointer";
+    if (src.id===activeId) row.style.borderLeft = "4px solid var(--spot)";
+    var left = document.createElement("span"); left.textContent = (src.id===activeId?"✓ ":"") + src.name;
+    row.appendChild(left);
+    row.addEventListener("click", function(){ setActiveSourceId(src.id); renderSources(); });
+    if (src.deletable){
+      var del = document.createElement("button"); del.className="iconbtn"; del.textContent="🗑";
+      del.title = "Supprimer cette source";
+      del.addEventListener("click", function(e){
+        e.stopPropagation();
+        saveSources(loadSources().filter(function(s){ return s.id!==src.id; }));
+        if (getActiveSourceId()===src.id) setActiveSourceId("default");
+        renderSources();
+      });
+      row.appendChild(del);
+    }
+    wrap.appendChild(row);
+  });
+}
+$("b-home-sources").addEventListener("click", function(){ renderSources(); show("s-sources"); });
+$("b-src-back").addEventListener("click", function(){ show("s-home"); });
+$("b-src-import").addEventListener("click", function(){ $("src-file-input").click(); });
+$("src-file-input").addEventListener("change", function(e){
+  var file = e.target.files[0];
+  e.target.value = ""; // permet de réimporter le même fichier ensuite
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var lines = String(ev.target.result).split(/\r\n|\r|\n/).map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
+    if (lines.length===0){ alert("Le fichier ne contient aucun thème."); return; }
+    var name = file.name.replace(/\.[^/.]+$/, "");
+    var list = loadSources();
+    var id = "src_"+Date.now();
+    list.push({id:id, name:name, themes:lines});
+    saveSources(list);
+    setActiveSourceId(id);
+    renderSources();
+  };
+  reader.readAsText(file, "utf-8");
+});
+
 // ---------- Config participants & équipes ----------
 function startConfig(){
   var wrap = $("config-nb"); wrap.innerHTML="";
@@ -344,7 +409,7 @@ $("b-teams-next").addEventListener("click", function(){ startNameSelection(); })
 function chooseMode(key){
   var m = MODES[key], pv = PLAYER_PREVIEW[G.participants];
   var t0 = m.t0(G.participants);
-  var pool = shuffle(THEME_POOL.map(function(t,i){return {id:i,txt:t};})).slice(0, Math.min(t0, THEME_POOL.length));
+  var pool = shuffle(getActiveThemePool().map(function(t,i){return {id:i,txt:t};})).slice(0, Math.min(t0, getActiveThemePool().length));
   if (key==="D"){
     G.cartes_en_jeu = pool.map(function(c){ return {id:c.id, txt:c.txt, statut:"disponible"}; });
     startManche();
