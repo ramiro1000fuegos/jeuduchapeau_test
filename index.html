@@ -83,6 +83,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
   <div class="topbar"><span class="eyebrow" id="pick-who"></span></div>
   <p class="sub" id="pick-sub">Sélectionnez 2 thèmes à écarter de la partie.</p>
   <div class="scroll" id="pick-list"></div>
+  <input type="text" id="pick-input" placeholder="Votre thème" style="display:none;padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--bg-raised);color:var(--text);font-size:16px;margin-bottom:10px">
   <button class="btn" id="b-pick-done" disabled>Retirer les thèmes sélectionnés</button>
 </div>
 
@@ -241,12 +242,13 @@ var MODES = {
   A:{t0:function(n){return 40+2*n;}, per:function(pv){return pv.X;}, discard:2, label:function(n,pv){return "A — chaque joueur consulte "+pv.X+" thèmes et en écarte 2 ("+(40+2*n)+" thèmes tirés)";}},
   B:{t0:function(n){return 40+n;}, per:function(pv){return pv.Y;}, discard:1, label:function(n,pv){return "B — chaque joueur consulte "+pv.Y+" thèmes et en écarte 1 ("+(40+n)+" thèmes tirés)";}},
   C:{t0:function(n){return 40;}, per:function(pv){return pv.Z;}, discard:0, label:function(n,pv){return "C — chaque joueur consulte "+pv.Z+" thèmes, sans en écarter (40 thèmes tirés)";}},
-  D:{t0:function(n){return 40;}, per:function(pv){return 0;}, discard:0, label:function(n,pv){return "D — tirage direct de 40 thèmes, sans aperçu";}}
+  D:{t0:function(n){return 40;}, per:function(pv){return 0;}, discard:0, label:function(n,pv){return "D — tirage direct de 40 thèmes, sans aperçu";}},
+  E:{t0:function(n){return 40-n;}, per:function(pv){return pv.W;}, discard:0, label:function(n,pv){return "E — chaque joueur consulte "+pv.W+" thèmes et en saisit un nouveau ("+(40-n)+" thèmes tirés)";}}
 };
 $("b-teams-next").addEventListener("click", function(){
   var pv = PLAYER_PREVIEW[G.participants];
   var wrap = $("mode-opts"); wrap.innerHTML="";
-  ["A","B","C","D"].forEach(function(key){
+  ["A","B","C","D","E"].forEach(function(key){
     var m = MODES[key];
     var b=document.createElement("button"); b.className="chip"; b.textContent = m.label(G.participants, pv);
     b.addEventListener("click", function(){ chooseMode(key); });
@@ -263,11 +265,11 @@ function chooseMode(key){
     startManche();
     return;
   }
-  G._setup = { pool:pool, playerIdx:0, totalPlayers:G.participants, perPlayer:m.per(pv), discardCount:m.discard, deck:shuffle(pool.slice()), ptr:0, discarded:[] };
+  G._setup = { mode:key, pool:pool, playerIdx:0, totalPlayers:G.participants, perPlayer:m.per(pv), discardCount:m.discard, deck:shuffle(pool.slice()), ptr:0, discarded:[], added:[] };
   nextSetupPlayer();
 }
 
-// ---------- Setup joueurs (modes A, B, C) ----------
+// ---------- Setup joueurs (modes A, B, C, E) ----------
 function nextSetupPlayer(){
   var s = G._setup;
   if (s.playerIdx >= s.totalPlayers){ finishSetup(); return; }
@@ -294,14 +296,24 @@ $("b-blank-next").addEventListener("click", function(){
   var slice = drawPlayerSlice(s.perPlayer);
   s._current = slice; s._picked = [];
   $("pick-who").textContent = "Joueur "+(s.playerIdx+1)+" / "+s.totalPlayers;
-  $("pick-sub").textContent = s.discardCount>0
-    ? "Sélectionnez "+s.discardCount+" thème"+(s.discardCount>1?"s":"")+" à écarter de la partie."
-    : "Consultez vos thèmes, puis continuez.";
-  $("b-pick-done").textContent = s.discardCount>0 ? "Retirer le"+(s.discardCount>1?"s":"")+" thème"+(s.discardCount>1?"s":"")+" sélectionné"+(s.discardCount>1?"s":"") : "Continuer";
+  var input = $("pick-input");
+  if (s.mode==="E"){
+    $("pick-sub").textContent = "Consultez vos thèmes, puis saisissez-en un nouveau à ajouter à la partie.";
+    $("b-pick-done").textContent = "Valider mon thème";
+    input.value=""; input.style.display="block";
+    $("b-pick-done").disabled = true;
+  } else {
+    $("pick-sub").textContent = s.discardCount>0
+      ? "Sélectionnez "+s.discardCount+" thème"+(s.discardCount>1?"s":"")+" à écarter de la partie."
+      : "Consultez vos thèmes, puis continuez.";
+    $("b-pick-done").textContent = s.discardCount>0 ? "Retirer le"+(s.discardCount>1?"s":"")+" thème"+(s.discardCount>1?"s":"")+" sélectionné"+(s.discardCount>1?"s":"") : "Continuer";
+    input.style.display="none";
+    $("b-pick-done").disabled = s.discardCount>0;
+  }
   var list = $("pick-list"); list.innerHTML="";
   slice.forEach(function(c){
     var d=document.createElement("div"); d.className="card"; d.textContent=c.txt;
-    if (s.discardCount>0){
+    if (s.mode!=="E" && s.discardCount>0){
       d.addEventListener("click", function(){
         var idx=s._picked.indexOf(c.id);
         if(idx>-1){ s._picked.splice(idx,1); d.removeAttribute("aria-pressed"); }
@@ -311,18 +323,27 @@ $("b-blank-next").addEventListener("click", function(){
     }
     list.appendChild(d);
   });
-  $("b-pick-done").disabled = s.discardCount>0;
   show("s-pick");
+});
+$("pick-input").addEventListener("input", function(){
+  var s = G._setup;
+  if (s && s.mode==="E") $("b-pick-done").disabled = $("pick-input").value.trim().length===0;
 });
 $("b-pick-done").addEventListener("click", function(){
   var s = G._setup;
-  s.discarded = s.discarded.concat(s._picked);
+  if (s.mode==="E"){
+    var txt = $("pick-input").value.trim();
+    if (!txt) return;
+    s.added.push({id:1000000+s.playerIdx, txt:txt});
+  } else {
+    s.discarded = s.discarded.concat(s._picked);
+  }
   s.playerIdx++;
   nextSetupPlayer();
 });
 function finishSetup(){
   var s = G._setup;
-  var kept = s.pool.filter(function(c){ return s.discarded.indexOf(c.id)===-1; });
+  var kept = s.pool.filter(function(c){ return s.discarded.indexOf(c.id)===-1; }).concat(s.added);
   G.cartes_en_jeu = shuffle(kept).slice(0,40).map(function(c){ return {id:c.id, txt:c.txt, statut:"disponible"}; });
   delete G._setup;
   startManche();
