@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>Jeu du chapeau — La boîte aux cartes</title>
+<title>Jeu du chapeau</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,14 +18,6 @@ html,body{height:100%;}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);overflow:hidden;height:100dvh;display:flex;flex-direction:column;}
 button{font-family:inherit;cursor:pointer;}
 h1,h2{font-family:var(--font-display);margin:0 0 8px;}
-.rv-titre-image{
-  display:block;
-  max-width:100%;
-  max-height:22vh;
-  width:auto;
-  margin:10px auto 60px;
-  object-fit:contain;
-}      
 .scr{flex:1;display:none;flex-direction:column;min-height:0;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));}
 .scr.on{display:flex;}
 .center{align-items:center;justify-content:center;text-align:center;}
@@ -45,7 +37,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
 .eyebrow{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);}
 .iconbtn{background:var(--bg-raised);border:1px solid var(--line);color:var(--text-muted);width:36px;height:36px;border-radius:10px;}
 #g-team{font-size:clamp(20px,6vw,28px);letter-spacing:.02em;}
-#g-time{font-family:var(--font-display);font-size:clamp(52px,16vh,88px);font-weight:700;margin:4px 0;line-height:1;}
+#g-time{font-family:var(--font-display);font-size:clamp(52px,14vh,84px);font-weight:700;margin:4px 0;line-height:1;text-align:center;}
 #g-theme{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,8vw,46px);text-align:center;padding:14px 10px;line-height:1.15;}
 #g-progress{font-size:clamp(14px,3.5vw,18px);}
 .stagemid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;}
@@ -53,7 +45,26 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
 .popup{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10;padding:20px;}
 .popup.on{display:flex;}
 .popup-box{background:var(--bg-raised);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:340px;text-align:center;}
-.score-row{display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg-raised);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:16px;}
+.score-row{display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg-raised);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:16px;}.rv-titre-image{
+  display:block;
+  max-width:100%;
+  max-height:22vh;
+  width:auto;
+  margin:10px auto 60px;
+  object-fit:contain;
+}.rv-players-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:22px; }
+.rv-player-opt{
+  background:var(--bg-raised); border:1px solid var(--line); border-radius:14px;
+  padding:18px 0; text-align:center; color:var(--text);
+  font-family:var(--font-display); font-weight:700; font-size:28px;
+}
+.rv-player-opt span{ display:block; font-family:var(--font-ui); font-weight:500; font-size:13px; color:var(--text-muted); margin-top:4px; }
+.rv-player-opt[aria-pressed="true"]{ background:var(--spot); border-color:var(--spot); color:#1B140A; }
+.rv-player-opt[aria-pressed="true"] span{ color:#3A2A0E; }
+.btn-guess{width:100%;padding:24px;font-size:20px;border-radius:16px;font-weight:800;background:#3FBF7F;color:#06231A;}
+.g-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-gray{background:#3A3542;color:var(--text);border:none;padding:14px 10px;font-size:15px;border-radius:12px;font-weight:600;}
+.g-row2 .solo{grid-column:2;}
 </style>
 </head>
 <body>
@@ -79,7 +90,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
 
 <div id="s-config" class="scr center">
   <h2>Nombre de participants</h2>
-  <div class="row" id="config-nb"></div>
+  <div class="rv-players-grid" id="config-nb"></div>
 </div>
 
 <div id="s-teamnames" class="scr center">
@@ -127,11 +138,11 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;}
     <span class="eyebrow" id="g-manche"></span>
     <button class="iconbtn" id="b-game-quit">✕</button>
   </div>
+  <div id="g-time">--</div>
   <div class="stagemid">
     <div id="g-team" style="width:100%;box-sizing:border-box;text-align:center;padding:16px;border-radius:14px;font-weight:800;"></div>
-    <div id="g-frame" style="width:100%;box-sizing:border-box;border-radius:22px;padding:20px 14px;margin-top:14px;display:flex;flex-direction:column;align-items:center;min-height:0;">
-      <div id="g-time">--</div>
-      <div id="g-progress" class="sub" style="margin:2px 0 6px"></div>
+    <div id="g-frame" style="width:100%;box-sizing:border-box;border-radius:22px;padding:28px 20px;margin-top:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:0;">
+      <div id="g-progress" class="sub" style="margin:2px 0 10px"></div>
       <div id="g-theme">Prêt ?</div>
     </div>
   </div>
@@ -302,7 +313,9 @@ function startConfig(){
   var wrap = $("config-nb"); wrap.innerHTML="";
   for (var n=4;n<=12;n++){
     (function(n){
-      var b=document.createElement("button"); b.className="chip"; b.textContent=n;
+      var b=document.createElement("button"); b.className="rv-player-opt"; b.type="button";
+      b.setAttribute("aria-pressed","false");
+      b.innerHTML = n+"<span>joueurs</span>";
       b.addEventListener("click", function(){ onParticipants(n); });
       wrap.appendChild(b);
     })(n);
@@ -578,11 +591,13 @@ function showNextTheme(){
   return true;
 }
 function renderActions(){
-  var html = '<button class="btn" id="b-guess">Thème deviné</button>';
+  var html = '<button class="btn btn-guess" id="b-guess">Thème deviné</button>';
+  html += '<div class="g-row2">';
   if (G.manche_courante >= 2){
-    html += '<button class="btn ghost" id="b-skip">Erreur / Passer thème</button>';
+    html += '<button class="btn btn-gray" id="b-skip">Erreur / Passer</button>';
   }
-  html += '<button class="btn danger" id="b-faute">Faute</button>';
+  html += '<button class="btn danger'+(G.manche_courante>=2?'':' solo')+'" id="b-faute">Faute</button>';
+  html += '</div>';
   $("g-actions").innerHTML = html;
   $("b-guess").addEventListener("click", function(){
     soundOk();
