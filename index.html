@@ -22,7 +22,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
 .scr.on{display:flex;}
 .center{align-items:center;justify-content:center;text-align:center;}
 .sub{color:var(--text-muted);font-size:clamp(17px,4.5vw,19px);line-height:1.5;margin:0 0 20px;}
-.btn{border:none;border-radius:12px;padding:18px 22px;font-size:17px;font-weight:600;background:var(--spot);color:#1B140A;margin:6px 0;}
+.btn{display:block;width:100%;box-sizing:border-box;border:none;border-radius:12px;padding:18px 22px;font-size:17px;font-weight:600;background:var(--spot);color:#1B140A;margin:6px 0;min-height:56px;}
 .btn:active{transform:scale(.98);}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
 .btn.danger{background:var(--danger);color:#fff;}
@@ -110,10 +110,10 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
   <button class="btn ghost" id="b-tn-skip" style="margin-top:16px;width:100%;font-size:18px;padding:20px">Sauter cette étape</button>
 </div>
 
-<div id="s-teams" class="scr center">
-  <h2>Formation des équipes</h2>
+<div id="s-teams" class="scr" style="align-items:center;text-align:center;justify-content:flex-start;">
+  <h2 style="margin-top:8vh">Formation des équipes</h2>
   <p class="sub" id="teams-desc"></p>
-  <button class="btn btn-cta" id="b-teams-next">Continuer</button>
+  <button class="btn btn-cta" id="b-teams-next" style="margin-top:auto">Continuer</button>
 </div>
 
 <div id="s-mode" class="scr" style="align-items:center">
@@ -122,9 +122,9 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
   <div class="row fill-height" id="mode-opts" style="flex-direction:column;width:100%"></div>
 </div>
 
-<div id="s-blank" class="scr center">
-  <p class="sub" id="blank-label" style="font-size:clamp(20px,5.5vw,24px)">Passez le téléphone au joueur suivant.</p>
-  <button class="btn btn-cta" id="b-blank-next">Joueur suivant</button>
+<div id="s-blank" class="scr" style="align-items:center;text-align:center;justify-content:flex-start;">
+  <p class="sub" id="blank-label" style="font-size:clamp(20px,5.5vw,24px);margin-top:12vh">Passez le téléphone au joueur suivant.</p>
+  <button class="btn btn-cta" id="b-blank-next" style="margin-top:auto">Joueur suivant</button>
 </div>
 
 <div id="s-pick" class="scr">
