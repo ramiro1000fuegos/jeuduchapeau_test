@@ -41,7 +41,11 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
 #g-theme{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,8vw,46px);text-align:center;padding:14px 10px;line-height:1.15;}
 #g-progress{font-size:clamp(14px,3.5vw,18px);}
 .stagemid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;}
-.actions{flex-shrink:0;display:flex;flex-direction:column;gap:10px;padding-bottom:10px;}
+.actions{flex-shrink:0;display:flex;flex-direction:column;gap:10px;padding-bottom:22px;}
+.action-slot{margin-top:auto;width:100%;}
+.secondary-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px;}
+.secondary-row .btn{font-size:14px;padding:14px 8px;min-height:48px;margin:0;}
+.spacer-secondary{height:58px;}
 .popup{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10;padding:20px;}
 .popup.on{display:flex;}
 .popup-box{background:var(--bg-raised);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:340px;text-align:center;}
@@ -61,7 +65,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
 .rv-player-opt span{ display:block; font-family:var(--font-ui); font-weight:500; font-size:13px; color:var(--text-muted); margin-top:4px; }
 .rv-player-opt[aria-pressed="true"]{ background:var(--spot); border-color:var(--spot); color:#1B140A; }
 .rv-player-opt[aria-pressed="true"] span{ color:#3A2A0E; }
-.btn-guess{width:100%;padding:24px;font-size:20px;border-radius:16px;font-weight:800;background:#3FBF7F;color:#06231A;}
+.btn-guess{width:100%;padding:32px;font-size:23px;min-height:88px;border-radius:16px;font-weight:800;background:#3FBF7F;color:#06231A;}
 .g-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .btn-gray{background:#3A3542;color:var(--text);border:none;padding:14px 10px;font-size:15px;border-radius:12px;font-weight:600;}
 .g-row2 .solo{grid-column:2;}
@@ -70,22 +74,26 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
 #mode-opts.fill-height .chip-wide{flex:1;display:flex;flex-direction:column;justify-content:center;}
 .chip-wide{width:100%;box-sizing:border-box;text-align:left;padding:20px 20px;font-size:18px;border-radius:14px;line-height:1.3;}
 .chip-wide span{display:block;font-family:var(--font-ui);font-weight:500;font-size:14px;color:var(--text-muted);margin-top:4px;}
+#mode-opts.fill-height .chip-wide{text-align:center;font-size:clamp(20px,5.5vw,26px);font-weight:800;}
+#mode-opts.fill-height .chip-wide span{font-size:clamp(14px,3.8vw,17px);margin-top:8px;}
 .rv-players-grid{width:100%;}
 .score-row{font-size:19px;padding:16px 18px;}
 </style>
 </head>
 <body>
-<button id="b-global-home" class="iconbtn" style="position:fixed;top:max(14px,env(safe-area-inset-top));left:14px;z-index:50;display:none;">🏠</button>
+<button id="b-global-close" class="iconbtn" style="position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:50;display:none;">✕</button>
 
-<div id="s-home" class="scr" style="align-items:center;text-align:center;justify-content:flex-start;padding-top:8vh;">
-  <!--<h1>Jeu du chapeau</h1>-->
-  <img src="Titre_Jeu_Du_Chapeau.png" alt="Jeu du Chapeau" class="rv-titre-image" style="margin:0 auto 24px;">
-  <p class="sub">Devinez un maximum de thèmes en 3 manches.</p>
-  <button class="btn btn-cta" id="b-home-new">Nouvelle partie</button>
-  <div style="margin-top:auto;width:100%;padding-top:24px;">
-    <button class="btn ghost" id="b-home-resume" style="display:none;width:100%">Reprendre la partie</button>
-    <button class="btn ghost" id="b-home-rules" style="width:100%">Règles du jeu</button>
-    <button class="btn ghost" id="b-home-sources" style="width:100%">Gérer les sources</button>
+<div id="s-home" class="scr" style="align-items:center;text-align:center;">
+  <div style="padding-top:6vh">
+    <img src="Titre_Jeu_Du_Chapeau.png" alt="Jeu du Chapeau" class="rv-titre-image" style="margin:0 auto 20px;">
+    <p class="sub">Devinez un maximum de thèmes en 3 manches.</p>
+  </div>
+  <button class="btn btn-cta action-slot" id="b-home-new">Nouvelle partie</button>
+  <div class="spacer-secondary"></div>
+  <div class="secondary-row">
+    <button class="btn ghost" id="b-home-resume" style="display:none">Reprendre la partie</button>
+    <button class="btn ghost" id="b-home-rules">Règles du jeu</button>
+    <button class="btn ghost" id="b-home-sources">Gérer les sources</button>
   </div>
 </div>
 
@@ -103,17 +111,17 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
   <div class="rv-players-grid" id="config-nb"></div>
 </div>
 
-<div id="s-teamnames" class="scr center">
+<div id="s-teamnames" class="scr" style="align-items:center;text-align:center;">
   <div id="tn-badge" style="padding:12px 20px;border-radius:12px;font-weight:800;font-size:clamp(18px,5vw,22px);margin-bottom:16px;"></div>
   <h2>Choisissez le nom de votre équipe</h2>
   <div class="row" id="tn-opts" style="flex-direction:column;width:100%"></div>
-  <button class="btn ghost" id="b-tn-skip" style="margin-top:16px;width:100%;font-size:18px;padding:20px">Sauter cette étape</button>
+  <button class="btn ghost action-slot" id="b-tn-skip" style="width:100%;font-size:18px;padding:20px">Sauter cette étape</button>
 </div>
 
-<div id="s-teams" class="scr" style="align-items:center;text-align:center;justify-content:flex-start;">
-  <h2 style="margin-top:8vh">Formation des équipes</h2>
+<div id="s-teams" class="scr" style="align-items:center;text-align:center;">
+  <h2 style="margin-top:6vh">Formation des équipes</h2>
   <p class="sub" id="teams-desc"></p>
-  <button class="btn btn-cta" id="b-teams-next" style="margin-top:auto">Continuer</button>
+  <button class="btn btn-cta action-slot" id="b-teams-next">Continuer</button>
 </div>
 
 <div id="s-mode" class="scr" style="align-items:center">
@@ -122,9 +130,9 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
   <div class="row fill-height" id="mode-opts" style="flex-direction:column;width:100%"></div>
 </div>
 
-<div id="s-blank" class="scr" style="align-items:center;text-align:center;justify-content:flex-start;">
+<div id="s-blank" class="scr" style="align-items:center;text-align:center;">
   <p class="sub" id="blank-label" style="font-size:clamp(20px,5.5vw,24px);margin-top:12vh">Passez le téléphone au joueur suivant.</p>
-  <button class="btn btn-cta" id="b-blank-next" style="margin-top:auto">Joueur suivant</button>
+  <button class="btn btn-cta action-slot" id="b-blank-next">Joueur suivant</button>
 </div>
 
 <div id="s-pick" class="scr">
@@ -135,18 +143,20 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
   <button class="btn" id="b-pick-done" disabled>Retirer les thèmes sélectionnés</button>
 </div>
 
-<div id="s-premanche" class="scr center">
-  <h2 id="pm-title"></h2>
+<div id="s-premanche" class="scr" style="align-items:center;text-align:center;">
+  <h2 id="pm-title" style="margin-top:4vh"></h2>
   <p class="sub" id="pm-desc" style="font-size:clamp(18px,5vw,20px)"></p>
   <div class="row" id="pm-duration"></div>
-  <button class="btn btn-cta" id="b-pm-start">Commencer la phase</button>
-  <button class="btn ghost" id="b-pm-rules" style="width:100%;font-size:18px;padding:18px">Règles du jeu</button>
+  <button class="btn btn-cta action-slot" id="b-pm-start">Commencer la phase</button>
+  <div class="spacer-secondary"></div>
+  <div class="secondary-row">
+    <button class="btn ghost" id="b-pm-rules">Règles du jeu</button>
+  </div>
 </div>
 
 <div id="s-game" class="scr">
   <div class="topbar">
     <span class="eyebrow" id="g-manche"></span>
-    <button class="iconbtn" id="b-game-quit">✕</button>
   </div>
   <div id="g-time">--</div>
   <div class="stagemid">
@@ -167,11 +177,14 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
   <div class="row" id="teamchoice-opts" style="flex-direction:column"></div>
 </div>
 
-<div id="s-endmanche" class="scr center">
+<div id="s-endmanche" class="scr" style="align-items:center;text-align:center;">
   <h2>Fin de phase</h2>
   <div class="scroll" id="em-scores" style="width:100%"></div>
-  <button class="btn" id="b-em-next" style="margin-top:16px">OK</button>
-  <button class="btn ghost" id="b-em-rules">Règles du jeu</button>
+  <button class="btn action-slot" id="b-em-next">OK</button>
+  <div class="spacer-secondary"></div>
+  <div class="secondary-row">
+    <button class="btn ghost" id="b-em-rules">Règles du jeu</button>
+  </div>
 </div>
 
 <div id="s-end" class="scr center">
@@ -205,7 +218,7 @@ var THEME_POOL = ["Michael Jackson", "Napoléon Bonaparte", "Albert Einstein", "
 
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=(Math.random()*(i+1))|0;var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function $(id){return document.getElementById(id);}
-function show(id){document.querySelectorAll(".scr").forEach(function(s){s.classList.remove("on");});$(id).classList.add("on");$("b-global-home").style.display = (id==="s-home") ? "none" : "flex";}
+function show(id){document.querySelectorAll(".scr").forEach(function(s){s.classList.remove("on");});$(id).classList.add("on");$("b-global-close").style.display = (id==="s-home") ? "none" : "flex";}
 
 // ---------- Équipes : couleurs (fixes) & noms (choisis dynamiquement, voir annexe) ----------
 var TEAM_COLORS = ["#FFD166","#4FD9E8","#B79CFF","#7FE8C0","#FF6F59"];
@@ -705,8 +718,7 @@ function endGame(){
 $("b-end-new").addEventListener("click", function(){ show("s-home"); });
 
 // ---------- Quitter ----------
-$("b-game-quit").addEventListener("click", function(){ pauseTimer(); $("p-quit").classList.add("on"); });
-$("b-global-home").addEventListener("click", function(){
+$("b-global-close").addEventListener("click", function(){
   var inGame = $("s-game").classList.contains("on");
   if (inGame) pauseTimer();
   $("p-quit")._wasInGame = inGame;
