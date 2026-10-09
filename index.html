@@ -342,7 +342,7 @@ var FEEDBACK_KEY = "jc52_feedback_v1";
 function isFeedbackOn(){ return localStorage.getItem(FEEDBACK_KEY) !== "off"; } // activé par défaut
 function setFeedbackOn(v){ try{ localStorage.setItem(FEEDBACK_KEY, v ? "on" : "off"); }catch(e){} }
 function renderFeedbackToggle(){
-  $("feedback-toggle-state").textContent = isFeedbackOn() ? "✓ Activé" : "Désactivé";
+  $("feedback-toggle-row").setAttribute("aria-checked", isFeedbackOn() ? "true" : "false");
 }
 $("feedback-toggle-row").addEventListener("click", function(){
   setFeedbackOn(!isFeedbackOn());
