@@ -177,7 +177,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
   <p class="sub" id="pick-sub">Sélectionnez 2 thèmes à écarter de la partie.</p>
   <div class="scroll" id="pick-list"></div>
   <input type="text" id="pick-input" placeholder="Votre thème" style="display:none;padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--bg-raised);color:var(--text);font-size:16px;margin:8px 0">
-  <button class="btn btn-cta" id="10, 30" disabled style="margin-top:10px">Retirer les thèmes sélectionnés</button>
+  <button class="btn btn-cta" id="b-pick-done" disabled style="margin-top:10px">Retirer les thèmes sélectionnés</button>
 </div>
 
 <div id="s-premanche" class="scr">
@@ -389,7 +389,7 @@ function renderSources(){
     wrap.appendChild(row);
   });
 }
-$("b-home-sources").addEventListener("click", function(){ renderSources(); show("s-sources"); });
+$("b-home-sources").addEventListener("click", function(){ renderSources(); renderFeedbackToggle(); show("s-sources"); });  
 $("b-src-back").addEventListener("click", function(){ show("s-home"); });
 $("b-src-import").addEventListener("click", function(){ $("src-file-input").click(); });
 $("src-file-input").addEventListener("change", function(e){
@@ -569,9 +569,9 @@ function showPickScreen(){
   var input = $("pick-input");
   if (s.mode==="E"){
     $("pick-sub").textContent = "Consultez vos thèmes, puis saisissez-en un nouveau à ajouter à la partie.";
-    $("10, 30").textContent = "Valider mon thème";
+    $("b-pick-done").textContent = "Valider mon thème";
     input.value=""; input.style.display="block";
-    $("10, 30").disabled = true;
+    $("b-pick-done").disabled = true;
   } else {
     $("pick-sub").textContent = s.discardCount>0
       ? "Sélectionnez "+s.discardCount+" thème"+(s.discardCount>1?"s":"")+" à écarter de la partie."
@@ -590,7 +590,6 @@ function showPickScreen(){
         if(idx>-1){ s._picked.splice(idx,1); d.removeAttribute("aria-pressed"); }
         else if(s._picked.length<s.discardCount){ s._picked.push(c.id); d.setAttribute("aria-pressed","true"); }
         $("b-pick-done").disabled = s._picked.length!==s.discardCount;
-        persistState();
       });
     }
     list.appendChild(d);
@@ -859,7 +858,6 @@ $("b-global-close").addEventListener("click", function(){
   $("p-quit").classList.add("on");
 });
 $("b-quit-no").addEventListener("click", function(){ $("p-quit").classList.remove("on"); if ($("p-quit")._resume) resumeTimer(); });
-$("b-quit-yes").addEventListener("click", function(){ $("p-quit").classList.remove("on"); show("s-home"); });
 
 $("b-quit-yes").addEventListener("click", function(){
   $("p-quit").classList.remove("on");
