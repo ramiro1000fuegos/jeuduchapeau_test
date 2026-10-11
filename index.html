@@ -24,7 +24,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
 #s-pick,#s-game,#s-teamnames{padding-top:22px;}
 #s-pick{text-align:left;}
 .sub{color:var(--text-muted);font-size:clamp(15px,4vw,17px);line-height:1.4;margin:0 0 16px;}
-.sub_phase{color:var(--text-muted);font-size:clamp(17px,5vw,19px);line-height:1.4;margin:0 0 16px;}  
+.sub_phase{color:var(--text-muted);font-size:clamp(17px,5vw,19px);line-height:1.4;margin:0 0 16px;text-align:left;}  
 .btn{display:block;width:100%;border:none;border-radius:14px;padding:16px 20px;font-size:18px;font-weight:700;background:var(--cream);color:#1B140A;margin:0;min-height:64px;}
 .btn:active{transform:scale(.98);}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:600;}
@@ -645,7 +645,7 @@ function finishSetup(){
 
 // ---------- Manches ----------
 var MANCHE_DESC = {
-  1: "Décrivez le thème sans le prononcer. <br>Interdits: <br>- Diminutif ou mot de la même famille<br>- Mot qui sonne pareil<br>- Traduction étrangère<br>- Gestes ou bruitages<br>- Indices sur les lettres ou l’orthographe",
+  1: "Décrivez le thème sans le prononcer. <br><br><b>Interdits:</b><br>- Diminutif ou mot de la même famille<br>- Mot qui sonne pareil<br>- Traduction étrangère<br>- Gestes ou bruitages<br>- Indices sur les lettres ou l’orthographe<br>",
   2: "Un seul mot autorisé. <br>Interdits: <br>-Incide avec plusieurs mots<br>- Diminutif ou mot de la même famille<br>- Mot qui sonne pareil<br>- Traduction étrangère<br>- Gestes ou bruitages",
   3: "Mimez et/ou bruitez le thème, sans parler ni fredonner des chansons."
 };
@@ -659,7 +659,7 @@ function startManche(){
   G.statut = "en_cours";
   G.cartes_en_jeu.forEach(function(c){ c.statut = "disponible"; }); // en début de manche, tous les thèmes redeviennent disponibles
   save();
-  $("pm-title").textContent = "Phase "+G.manche_courante+" / 3: " + MANCHE_TITRE[G.manche_courante];
+  $("pm-title").innerHTML = "Phase "+G.manche_courante+" / 3: <br>" + MANCHE_TITRE[G.manche_courante];
   $("pm-desc").innerHTML = MANCHE_DESC[G.manche_courante];
   var dwrap = $("pm-duration"); dwrap.innerHTML="";
   [30,45,60].forEach(function(d){
@@ -699,7 +699,7 @@ function darkShade(hex, factor){
 function setupTurn(auto){
   lastWasGuess = false; updateUndoBtn();
   var team = G.teams[G.equipe_courante];
-  $("g-manche").textContent = "Phase "+G.manche_courante;
+  $("g-manche").textContent = "Phase "+G.manche_courante +" : " + MANCHE_TITRE[G.manche_courante];
   $("g-team").textContent = team.emoji+" "+team.nom;
   $("g-team").style.background = team.couleur; $("g-team").style.color = "#000";
   var frame = $("g-frame");
