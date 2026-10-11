@@ -649,12 +649,18 @@ var MANCHE_DESC = {
   2: "Un seul mot autorisé. <br>Interdits: <br>-Incide avec plusieurs mots<br>- Diminutif ou mot de la même famille<br>- Mot qui sonne pareil<br>- Traduction étrangère<br>- Gestes ou bruitages",
   3: "Mimez et/ou bruitez le thème, sans parler ni fredonner des chansons."
 };
+var MANCHE_TITRE = {
+  1: "Description libre",
+  2: "Un seul mot",
+  3: "Mimer / bruiter"
+};
+  
 function startManche(){
   G.statut = "en_cours";
   G.cartes_en_jeu.forEach(function(c){ c.statut = "disponible"; }); // en début de manche, tous les thèmes redeviennent disponibles
   save();
-  $("pm-title").textContent = "Phase "+G.manche_courante+" / 3";
-  $("pm-desc").textContent = MANCHE_DESC[G.manche_courante];
+  $("pm-title").textContent = "Phase "+G.manche_courante+" / 3: " + MANCHE_TITRE[G.manche_courante];
+  $("pm-desc").innerHTML = MANCHE_DESC[G.manche_courante];
   var dwrap = $("pm-duration"); dwrap.innerHTML="";
   [30,45,60].forEach(function(d){
     var b=document.createElement("button"); b.className="chip"; b.textContent=d+"s";
