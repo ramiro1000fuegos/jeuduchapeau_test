@@ -24,6 +24,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
 #s-pick,#s-game,#s-teamnames{padding-top:22px;}
 #s-pick{text-align:left;}
 .sub{color:var(--text-muted);font-size:clamp(15px,4vw,17px);line-height:1.4;margin:0 0 16px;}
+.sub_phase{color:var(--text-muted);font-size:clamp(17px,5vw,19px);line-height:1.4;margin:0 0 16px;}  
 .btn{display:block;width:100%;border:none;border-radius:14px;padding:16px 20px;font-size:18px;font-weight:700;background:var(--cream);color:#1B140A;margin:0;min-height:64px;}
 .btn:active{transform:scale(.98);}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:600;}
@@ -196,7 +197,7 @@ h1,h2{font-family:var(--font-display);margin:0 0 8px;font-size:clamp(22px,6vw,27
 <div id="s-premanche" class="scr">
   <div class="top start">
     <h2 id="pm-title"></h2>
-    <p class="sub" id="pm-desc"></p>
+    <p class="sub_phase" id="pm-desc"></p>
     <div class="row" id="pm-duration"></div>
   </div>
   <div class="zone">
@@ -644,9 +645,9 @@ function finishSetup(){
 
 // ---------- Manches ----------
 var MANCHE_DESC = {
-  1: "Décrivez librement le thème (interdit : dire plus d'un mot, épeler).",
-  2: "Un seul mot autorisé (interdits : gestes, bruitages).",
-  3: "Mimez le thème, sans parler ni fredonner."
+  1: "Décrivez le thème sans le prononcer. <br>Interdits: <br>- Diminutif ou mot de la même famille<br>- Mot qui sonne pareil<br>- Traduction étrangère<br>- Gestes ou bruitages<br>- Indices sur les lettres ou l’orthographe",
+  2: "Un seul mot autorisé. <br>Interdits: <br>-Incide avec plusieurs mots<br>- Diminutif ou mot de la même famille<br>- Mot qui sonne pareil<br>- Traduction étrangère<br>- Gestes ou bruitages",
+  3: "Mimez et/ou bruitez le thème, sans parler ni fredonner des chansons."
 };
 function startManche(){
   G.statut = "en_cours";
